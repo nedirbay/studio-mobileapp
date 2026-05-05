@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'main.dart';
+import 'selection_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -58,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     Timer(const Duration(milliseconds: 2000), () {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const MyHomePage(title: 'Flutter Demo Home Page'),
+          pageBuilder: (context, animation, secondaryAnimation) => const SelectionPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -104,80 +104,83 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 opacity: _opacityAnimation.value,
                 child: Transform.scale(
                   scale: _scaleAnimation.value,
-                  child: IntrinsicWidth(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Brand Title
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ShaderMask(
-                              shaderCallback: (bounds) => const LinearGradient(
-                                colors: [Color(0xFFFFFFFF), Color(0xFF9CA3AF)],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ).createShader(bounds),
-                              child: Text(
-                                'DOGANLAR',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: title1Size,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.02 * title1Size,
-                                  color: Colors.white,
-                                  height: 1.1,
-                                ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Brand Title
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) => const LinearGradient(
+                              colors: [Color(0xFFFFFFFF), Color(0xFF9CA3AF)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ).createShader(bounds),
+                            child: Text(
+                              'DOGANLAR',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: title1Size,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.02 * title1Size,
+                                color: Colors.white,
+                                height: 1.1,
                               ),
-                            ),
-                            Transform.translate(
-                              offset: const Offset(0, -8),
-                              child: Text(
-                                'FOTO MERKEZI',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: title2Size,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFFDC2626),
-                                  letterSpacing: 0.5 * title2Size,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        // Tagline
-                        Opacity(
-                          opacity: _taglineOpacityAnimation.value,
-                          child: Text(
-                            'Ýokary hil, amatly baha',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: taglineSize,
-                              color: const Color(0xFF9CA3AF),
-                              fontWeight: FontWeight.w300,
-                              letterSpacing: 0.1 * taglineSize,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 32),
-                        // Loader Line
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: FractionallySizedBox(
-                            widthFactor: _loaderAnimation.value,
-                            child: Container(
-                              height: 2,
-                              decoration: BoxDecoration(
+                          Transform.translate(
+                            offset: const Offset(0, -8),
+                            child: Text(
+                              'FOTO MERKEZI',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: title2Size,
+                                fontWeight: FontWeight.w700,
                                 color: const Color(0xFFDC2626),
-                                borderRadius: BorderRadius.circular(1),
+                                letterSpacing: 0.5 * title2Size,
                               ),
                             ),
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Tagline
+                      Opacity(
+                        opacity: _taglineOpacityAnimation.value,
+                        child: Text(
+                          'Ýokary hil, amatly baha',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: taglineSize,
+                            color: const Color(0xFF9CA3AF),
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 0.1 * taglineSize,
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 32),
+                      // Loader Line
+                      Container(
+                        width: 200, // Fixed width for stability
+                        height: 2,
+                        decoration: BoxDecoration(
+                          color: Colors.white10,
+                          borderRadius: BorderRadius.circular(1),
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            width: 200 * _loaderAnimation.value,
+                            height: 2,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDC2626),
+                              borderRadius: BorderRadius.circular(1),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               );
