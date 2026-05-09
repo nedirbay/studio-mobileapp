@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../config.dart';
 import '../widgets/top_bar.dart';
 import 'photostudio_detail_page.dart';
+import '../services/sync_service.dart';
 
 class PhotoStudioPage extends StatefulWidget {
   const PhotoStudioPage({super.key});
@@ -46,6 +47,7 @@ class _PhotoStudioPageState extends State<PhotoStudioPage> {
           blogs = json.decode(utf8.decode(response.bodyBytes)) ?? [];
           isLoading = false;
         });
+        SyncService.checkForUpdates();
       }
     } catch (e) {
       debugPrint('Error fetching blogs: $e');
@@ -82,7 +84,7 @@ class _PhotoStudioPageState extends State<PhotoStudioPage> {
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(color: Color(0xFFF3F4F6), width: 1),
+                                side: const BorderSide(color: Color(0xFFF3F4F6), width: 1),
                               ),
                               margin: const EdgeInsets.only(bottom: 16),
                               child: InkWell(

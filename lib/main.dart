@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
+import 'services/notification_service.dart';
+import 'services/sync_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+  SyncService.checkForUpdates();
   runApp(const MyApp());
 }
 

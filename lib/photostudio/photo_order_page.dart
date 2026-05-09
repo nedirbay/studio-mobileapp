@@ -26,7 +26,7 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('${Config.apiBaseUrl}/main/orders/'),
+        Uri.parse('${Config.apiBaseUrl}/orders'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'customer_name': _nameController.text,

@@ -65,7 +65,7 @@ class _CommerceBlogPageState extends State<CommerceBlogPage> {
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(color: Color(0xFFF3F4F6), width: 1),
+                                side: const BorderSide(color: Color(0xFFF3F4F6), width: 1),
                               ),
                               margin: const EdgeInsets.only(bottom: 16),
                               child: InkWell(
