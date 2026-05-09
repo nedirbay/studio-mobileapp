@@ -5,7 +5,9 @@ import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_footer.dart';
 import '../config.dart';
-import 'commerce_order_page.dart';
+import '../commerce_order_page.dart';
+import './widgets/image_gallery.dart';
+import './widgets/full_screen_image.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final int productId;
@@ -23,12 +25,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool isLoading = true;
   int _currentImageIndex = 0;
   String activeTab = 'specs'; // 'specs' or 'reviews'
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     fetchProduct();
     fetchReviews();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchProduct() async {
@@ -89,86 +98,28 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               
               // Breadcrumb
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildBreadcrumbItem('Baş sahypa'),
-                      _buildBreadcrumbDivider(),
-                      _buildBreadcrumbItem('Harytlar'),
-                      _buildBreadcrumbDivider(),
-                      _buildBreadcrumbItem(product!['category_name'] ?? 'Kategoriýa'),
-                      _buildBreadcrumbDivider(),
-                      Text(
-                        product!['name'] ?? '', 
-                        style: const TextStyle(color: Color(0xFF111827), fontSize: 11, fontWeight: FontWeight.bold)
-                      ),
+                      Text('Baş sahypa', style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                      Icon(Icons.chevron_right, size: 14, color: Colors.grey[400]),
+                      Text('Harytlar', style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                      Icon(Icons.chevron_right, size: 14, color: Colors.grey[400]),
+                      Text(product!['category_name'] ?? 'Kategoriýa', style: TextStyle(color: Colors.grey[900], fontSize: 11, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
               ),
 
-              // Image Gallery
-              Stack(
-                children: [
-                  Container(
-                    height: 380,
-                    width: double.infinity,
-                    color: const Color(0xFFF9FAFB),
-                    child: PageView.builder(
-                      onPageChanged: (i) => setState(() => _currentImageIndex = i),
-                      itemCount: images.length,
-                      itemBuilder: (context, index) {
-                        final url = images[index].startsWith('http') ? images[index] : '${Config.mediaBaseUrl}${images[index]}';
-                        return InteractiveViewer(
-                          child: Image.network(
-                            url, 
-                            fit: BoxFit.contain,
-                            errorBuilder: (c, e, s) => const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  if (images.length > 1)
-                    Positioned(
-                      bottom: 20,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(images.length, (i) => Container(
-                          width: _currentImageIndex == i ? 20 : 6,
-                          height: 6,
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(3),
-                            color: _currentImageIndex == i ? const Color(0xFFDC2626) : Colors.grey[300],
-                          ),
-                        )),
-                      ),
-                    ),
-                  if (product!['badge'] != null)
-                    Positioned(
-                      top: 16,
-                      left: 16,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFDC2626),
-                          borderRadius: BorderRadius.circular(6),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)
-                          ]
-                        ),
-                        child: Text(
-                          product!['badge'].toString().toUpperCase(), 
-                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)
-                        ),
-                      ),
-                    ),
-                ],
+              ImageGallery(
+                images: images,
+                currentIndex: _currentImageIndex,
+                pageController: _pageController,
+                onPageChanged: (i) => setState(() => _currentImageIndex = i),
+                onFullScreenTap: (index) => _openFullScreenImage(images, index),
+                badge: product!['badge']?.toString(),
               ),
 
               Padding(
@@ -177,71 +128,54 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${product!['marka'] ?? ''} · ${product!['category_name'] ?? ''}', 
-                      style: TextStyle(color: Colors.grey[500], fontSize: 13, fontWeight: FontWeight.w500)
+                      '${product!['marka'] ?? 'Doganlar'} · ${product!['category_name'] ?? ''}', 
+                      style: TextStyle(color: Colors.grey[500], fontSize: 13, fontWeight: FontWeight.w600)
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       product!['name'] ?? '', 
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF111827), height: 1.2)
+                      style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: Color(0xFF111827), height: 1.2, letterSpacing: -0.5)
                     ),
                     const SizedBox(height: 16),
+                    
+                    // Rating
+                    Row(
+                      children: [
+                        ...List.generate(5, (i) => Icon(Icons.star_rounded, size: 20, color: i < 4 ? const Color(0xFFFBBF24) : Colors.grey[200])),
+                        const SizedBox(width: 8),
+                        Text('(${reviews.length} syn)', style: TextStyle(color: Colors.grey[500], fontSize: 13, fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 24),
                     
                     // Price Row
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text('\$${product!['price']}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Color(0xFFDC2626))),
-                        if (product!['original_price'] != null) ...[
+                        Text('${product!['price']} TMT', style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: Color(0xFFDC2626))),
+                        if (product!['original_price'] != null && (product!['original_price'] as num) > (product!['price'] as num)) ...[
                           const SizedBox(width: 12),
                           Text(
-                            '\$${product!['original_price']}', 
-                            style: const TextStyle(fontSize: 18, color: Color(0xFF9CA3AF), decoration: TextDecoration.lineThrough)
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Tygyşytlaň \$${(product!['original_price'] - product!['price']).toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                            '${product!['original_price']}', 
+                            style: const TextStyle(fontSize: 20, color: Color(0xFF9CA3AF), decoration: TextDecoration.lineThrough)
                           ),
                         ],
                       ],
                     ),
                     
                     const SizedBox(height: 32),
-                    
-                    // Description
-                    const Text('Düşündiriş', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF111827))),
-                    const SizedBox(height: 12),
-                    Text(
-                      product!['description'] ?? 'Düşündiriş ýok.', 
-                      style: const TextStyle(color: Color(0xFF4B5563), fontSize: 15, height: 1.6)
-                    ),
-                    
-                    const SizedBox(height: 40),
-                    
-                    // Tabs
-                    Container(
-                      decoration: const BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6), width: 2))
-                      ),
-                      child: Row(
-                        children: [
-                          _buildTab('Tehniki aýratynlyklar', 'specs'),
-                          _buildTab('Synlar (${reviews.length})', 'reviews'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    if (activeTab == 'specs') _buildSpecs() else _buildReviews(),
-                    
-                    const SizedBox(height: 48),
+
+                    // Availability & Quantity
+                    _buildAvailabilityAndQuantity(),
+
+                    const SizedBox(height: 32),
                     
                     // Add to Cart
                     SizedBox(
                       width: double.infinity,
-                      height: 56,
+                      height: 60,
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.push(
@@ -258,19 +192,36 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           backgroundColor: const Color(0xFFDC2626),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          elevation: 8,
-                          shadowColor: const Color(0xFFDC2626).withValues(alpha: 0.3),
+                          elevation: 0,
                         ),
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.shopping_cart_outlined),
+                            Icon(Icons.shopping_cart_outlined, size: 22),
                             SizedBox(width: 12),
-                            Text('Sebede goş', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text('Häzir sargyt et', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                           ],
                         ),
                       ),
                     ),
+                    
+                    const SizedBox(height: 40),
+                    
+                    // Description
+                    const Text('Düşündiriş', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF111827))),
+                    const SizedBox(height: 12),
+                    Text(
+                      product!['description'] ?? 'Düşündiriş ýok.', 
+                      style: const TextStyle(color: Color(0xFF4B5563), fontSize: 15, height: 1.6)
+                    ),
+                    
+                    const SizedBox(height: 40),
+                    
+                    // Tabs
+                    _buildTabs(),
+                    const SizedBox(height: 24),
+                    
+                    if (activeTab == 'specs') _buildSpecs() else _buildReviews(),
                   ],
                 ),
               ),
@@ -284,14 +235,83 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  Widget _buildBreadcrumbItem(String label) {
-    return Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 11));
+  Widget _buildAvailabilityAndQuantity() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Sany', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFF3F4F6), width: 2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () {}, 
+                    icon: const Icon(Icons.remove, size: 18),
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('1', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                  IconButton(
+                    onPressed: () {}, 
+                    icon: const Icon(Icons.add, size: 18, color: Color(0xFFDC2626)),
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            const Text('Ýagdaýy', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  (product!['stock'] == null || (product!['stock'] as num) > 0) ? Icons.check_circle : Icons.cancel,
+                  color: (product!['stock'] == null || (product!['stock'] as num) > 0) ? Colors.green : Colors.red,
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  (product!['stock'] == null || (product!['stock'] as num) > 0) ? 'Ammarda bar' : 'Ammarda ýok',
+                  style: TextStyle(
+                    color: (product!['stock'] == null || (product!['stock'] as num) > 0) ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
-  Widget _buildBreadcrumbDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Icon(Icons.chevron_right, size: 12, color: Colors.grey[400]),
+  Widget _buildTabs() {
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xFFF3F4F6), width: 2))
+      ),
+      child: Row(
+        children: [
+          _buildTab('Aýratynlyklar', 'specs'),
+          _buildTab('Synlar (${reviews.length})', 'reviews'),
+        ],
+      ),
     );
   }
 
@@ -423,5 +443,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     } catch (e) {
       return dateStr;
     }
+  }
+
+  void _openFullScreenImage(List<String> images, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FullScreenImagePage(
+          images: images,
+          initialIndex: initialIndex,
+        ),
+      ),
+    );
   }
 }

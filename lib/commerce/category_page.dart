@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_footer.dart';
-import 'product_detail_page.dart';
+import 'product_detail/product_detail_page.dart';
 import '../config.dart';
 
 class CategoryPage extends StatefulWidget {

@@ -4,9 +4,10 @@ import 'dart:convert';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_footer.dart';
-import 'product_detail_page.dart';
+import 'product_detail/product_detail_page.dart';
 import 'category_page.dart';
 import 'commerce_blog_page.dart';
+import 'all_products/all_products_page.dart';
 import '../config.dart';
 import '../identity/profile_page.dart';
 import '../services/sync_service.dart';
@@ -305,10 +306,12 @@ class _StorePageState extends State<StorePage> {
         itemCount: filteredProducts.length,
         itemBuilder: (context, index) {
           final prod = filteredProducts[index];
-          final String imageUrl = (prod['media'] != null && prod['media'].isNotEmpty)
-              ? (prod['media'][0]['url'].toString().startsWith('http') 
-                  ? prod['media'][0]['url'] 
-                  : '${Config.mediaBaseUrl}${prod['media'][0]['url']}')
+          String relativeUrl = '';
+          if (prod['media'] != null && prod['media'] is List && prod['media'].isNotEmpty) {
+            relativeUrl = prod['media'][0]['url'].toString();
+          }
+          final String imageUrl = relativeUrl.isNotEmpty
+              ? (relativeUrl.startsWith('http') ? relativeUrl : '${Config.mediaBaseUrl}${relativeUrl.startsWith('/') ? '' : '/'}$relativeUrl')
               : 'https://via.placeholder.com/150';
 
           return Container(
@@ -487,7 +490,9 @@ class _StorePageState extends State<StorePage> {
       ),
       child: BottomNavigationBar(
         onTap: (index) {
-          if (index == 2) {
+          if (index == 1) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => AllProductsPage(apiBaseUrl: Config.apiBaseUrl)));
+          } else if (index == 2) {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const CommerceBlogPage()));
           } else if (index == 3) {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
@@ -504,7 +509,7 @@ class _StorePageState extends State<StorePage> {
         elevation: 0,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), activeIcon: Icon(Icons.assignment_rounded), label: 'Orders'),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), activeIcon: Icon(Icons.grid_view_rounded), label: 'Harytlar'),
           BottomNavigationBarItem(icon: Icon(Icons.article_outlined), activeIcon: Icon(Icons.article_rounded), label: 'Blog'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
