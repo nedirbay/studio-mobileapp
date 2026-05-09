@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'widgets/top_bar.dart';
-import 'widgets/app_header.dart';
-import 'widgets/app_footer.dart';
+import '../widgets/top_bar.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_footer.dart';
 import 'product_detail_page.dart';
-import 'config.dart';
+import '../config.dart';
 
 class CategoryPage extends StatefulWidget {
   final int categoryId;

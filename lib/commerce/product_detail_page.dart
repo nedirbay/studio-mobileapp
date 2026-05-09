@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'widgets/top_bar.dart';
-import 'widgets/app_header.dart';
-import 'widgets/app_footer.dart';
-import 'config.dart';
+import '../widgets/top_bar.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_footer.dart';
+import '../config.dart';
+import 'commerce_order_page.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final int productId;
@@ -242,7 +243,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CommerceOrderPage(
+                                productName: product!['name'] ?? 'Haryt',
+                                price: (product!['price'] as num).toDouble(),
+                              ),
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFDC2626),
                           foregroundColor: Colors.white,

@@ -21,7 +21,7 @@ class TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF111827),
+      color: const Color(0xFFF9FAFB),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
         children: [
@@ -29,11 +29,11 @@ class TopBar extends StatelessWidget {
           const SizedBox(width: 12),
           _buildPhoneItem('+993 61 24-69-37'),
           const Spacer(),
-          const Icon(Icons.email_outlined, size: 12, color: Color(0xFFD1D5DB)),
+          const Icon(Icons.email_outlined, size: 12, color: Color(0xFF6B7280)),
           const SizedBox(width: 4),
           const Text(
             'doganlarfoto@gmail.com',
-            style: TextStyle(color: Color(0xFFD1D5DB), fontSize: 10, fontWeight: FontWeight.w500),
+            style: TextStyle(color: Color(0xFF6B7280), fontSize: 10, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -46,12 +46,12 @@ class TopBar extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.phone, size: 12, color: Color(0xFFD1D5DB)),
+          const Icon(Icons.phone, size: 12, color: Color(0xFF6B7280)),
           const SizedBox(width: 4),
           Text(
             phoneNumber,
             style: const TextStyle(
-              color: Color(0xFFD1D5DB), 
+              color: Color(0xFF6B7280), 
               fontSize: 10, 
               fontWeight: FontWeight.w500,
             ),

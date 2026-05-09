@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'store_page.dart';
+import 'commerce/store_page.dart';
+import 'photostudio/photostudio_page.dart';
 import 'widgets/top_bar.dart';
+import 'identity/profile_page.dart';
+import 'identity/login_page.dart';
 
 class SelectionPage extends StatelessWidget {
   const SelectionPage({super.key});
@@ -21,14 +24,25 @@ class SelectionPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    const Text(
-                      'Hoş geldiňiz!',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
-                        letterSpacing: -0.5,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Hoş geldiňiz!',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF111827),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.person_outline, size: 28),
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -44,10 +58,11 @@ class SelectionPage extends StatelessWidget {
                     SelectionCard(
                       title: 'Harytlar bölümi',
                       subtitle: 'Fotoapparatlar, kameralar, printerler we ş.m.',
-                      backgroundColor: const Color(0xFFF3F4F6),
+                      backgroundColor: Colors.white,
+                      borderColor: const Color(0xFFF3F4F6),
                       iconData: Icons.print_outlined,
-                      iconColor: const Color(0xFF9CA3AF),
-                      arrowColor: const Color(0xFF4B5563),
+                      iconColor: Colors.black,
+                      arrowColor: Colors.black,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -62,12 +77,16 @@ class SelectionPage extends StatelessWidget {
                     SelectionCard(
                       title: 'Foto studio',
                       subtitle: 'Surat we video hyzmatlary.\nToýlar, belli günler we beýleki hyzmatlar.',
-                      backgroundColor: const Color(0xFFFFEADD),
+                      backgroundColor: Colors.white,
+                      borderColor: const Color(0xFFF3F4F6),
                       iconData: Icons.camera,
-                      iconColor: const Color(0xFFE89A6A),
-                      arrowColor: const Color(0xFFEA580C),
+                      iconColor: Colors.black,
+                      arrowColor: Colors.black,
                       onTap: () {
-                        // Navigate to Foto Studio
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PhotoStudioPage()),
+                        );
                       },
                     ),
                   ],
@@ -85,6 +104,7 @@ class SelectionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final Color backgroundColor;
+  final Color borderColor;
   final IconData iconData;
   final Color iconColor;
   final Color arrowColor;
@@ -95,6 +115,7 @@ class SelectionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.backgroundColor,
+    required this.borderColor,
     required this.iconData,
     required this.iconColor,
     required this.arrowColor,
@@ -110,6 +131,7 @@ class SelectionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: borderColor, width: 2),
         ),
         child: Stack(
           children: [
@@ -122,8 +144,8 @@ class SelectionCard extends StatelessWidget {
                 child: Container(
                   width: 80,
                   height: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.5),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF3F4F6),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

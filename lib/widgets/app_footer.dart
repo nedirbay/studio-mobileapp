@@ -21,8 +21,11 @@ class AppFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF111827),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFF3F4F6), width: 1))
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -33,10 +36,10 @@ class AppFooter extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFFF3F4F6),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF111827), size: 24),
+                child: const Icon(Icons.camera_alt_rounded, color: Colors.black, size: 24),
               ),
               const SizedBox(width: 12),
               const Column(
@@ -47,7 +50,7 @@ class AppFooter extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                     fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                   ),
                   Text(
@@ -115,7 +118,7 @@ class AppFooter extends StatelessWidget {
           
           Text(
             '© ${DateTime.now().year} Doganlar foto merkezi.\nÄhli hukuklar goralan.',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11, height: 1.5),
+            style: TextStyle(color: Colors.black.withValues(alpha: 0.4), fontSize: 11, height: 1.5),
           ),
         ],
       ),
@@ -128,7 +131,7 @@ class AppFooter extends StatelessWidget {
       child: Text(
         title.toUpperCase(),
         style: const TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 12,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,

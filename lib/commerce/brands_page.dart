@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'widgets/top_bar.dart';
-import 'widgets/app_header.dart';
-import 'widgets/app_footer.dart';
-import 'config.dart';
+import '../widgets/top_bar.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_footer.dart';
+import '../config.dart';
 
 class BrandsPage extends StatefulWidget {
   final String apiBaseUrl;

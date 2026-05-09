@@ -84,20 +84,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final double taglineSize = isSmallScreen ? 16 : 24;
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.5,
-            colors: [
-              Color(0xFF111827),
-              Color(0xFF000000),
-            ],
-          ),
-        ),
-        child: Center(
-          child: AnimatedBuilder(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
               return Opacity(
@@ -113,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         children: [
                           ShaderMask(
                             shaderCallback: (bounds) => const LinearGradient(
-                              colors: [Color(0xFFFFFFFF), Color(0xFF9CA3AF)],
+                              colors: [Color(0xFF111827), Color(0xFF4B5563)],
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                             ).createShader(bounds),
@@ -124,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                 fontSize: title1Size,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: -0.02 * title1Size,
-                                color: Colors.white,
+                                color: Colors.black,
                                 height: 1.1,
                               ),
                             ),
@@ -153,7 +142,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: taglineSize,
-                            color: const Color(0xFF9CA3AF),
+                            color: const Color(0xFF4B5563),
                             fontWeight: FontWeight.w300,
                             letterSpacing: 0.1 * taglineSize,
                           ),
@@ -165,7 +154,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         width: 200, // Fixed width for stability
                         height: 2,
                         decoration: BoxDecoration(
-                          color: Colors.white10,
+                          color: const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(1),
                         ),
                         child: Align(

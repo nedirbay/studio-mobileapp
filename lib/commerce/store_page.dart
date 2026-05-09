@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'widgets/top_bar.dart';
-import 'widgets/app_header.dart';
-import 'widgets/app_footer.dart';
+import '../widgets/top_bar.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_footer.dart';
 import 'product_detail_page.dart';
 import 'category_page.dart';
-import 'config.dart';
+import 'commerce_blog_page.dart';
+import '../config.dart';
+import '../identity/profile_page.dart';
 
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
@@ -342,6 +344,13 @@ class _StorePageState extends State<StorePage> {
         ],
       ),
       child: BottomNavigationBar(
+        onTap: (index) {
+          if (index == 2) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const CommerceBlogPage()));
+          } else if (index == 3) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+          }
+        },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: Colors.orange,
@@ -354,7 +363,7 @@ class _StorePageState extends State<StorePage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), activeIcon: Icon(Icons.assignment_rounded), label: 'Orders'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), activeIcon: Icon(Icons.chat_bubble_rounded), label: 'Chat'),
+          BottomNavigationBarItem(icon: Icon(Icons.article_outlined), activeIcon: Icon(Icons.article_rounded), label: 'Blog'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
       ),
