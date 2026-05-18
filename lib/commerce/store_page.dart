@@ -12,6 +12,8 @@ import '../config.dart';
 import '../identity/profile_page.dart';
 import '../services/sync_service.dart';
 
+import 'widgets/commerce_bottom_nav.dart';
+
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
 
@@ -182,7 +184,7 @@ class _StorePageState extends State<StorePage> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -195,7 +197,7 @@ class _StorePageState extends State<StorePage> {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
+                      color: Colors.orange.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -323,7 +325,7 @@ class _StorePageState extends State<StorePage> {
               border: Border.all(color: const Color(0xFFF3F4F6), width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: Colors.black.withOpacity(0.04),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -477,44 +479,7 @@ class _StorePageState extends State<StorePage> {
   }
 
   Widget _buildBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => AllProductsPage(apiBaseUrl: Config.apiBaseUrl)));
-          } else if (index == 2) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const CommerceBlogPage()));
-          } else if (index == 3) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: const Color(0xFF9CA3AF),
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), activeIcon: Icon(Icons.grid_view_rounded), label: 'Harytlar'),
-          BottomNavigationBarItem(icon: Icon(Icons.article_outlined), activeIcon: Icon(Icons.article_rounded), label: 'Blog'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person_rounded), label: 'Profile'),
-        ],
-      ),
-    );
+    return CommerceBottomNav(currentIndex: 0);
   }
 }
 
@@ -555,7 +520,7 @@ class _HeroBannerState extends State<HeroBanner> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
+                      color: Colors.black.withOpacity(0.15),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -579,7 +544,7 @@ class _HeroBannerState extends State<HeroBanner> {
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,
                               colors: [
-                                Colors.black.withValues(alpha: 0.8),
+                                Colors.black.withOpacity(0.8),
                                 Colors.transparent,
                               ],
                             ),
@@ -626,7 +591,7 @@ class _HeroBannerState extends State<HeroBanner> {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.9),
+                                color: Colors.white.withOpacity(0.9),
                                 fontSize: 13,
                                 height: 1.4,
                               ),
@@ -654,7 +619,7 @@ class _HeroBannerState extends State<HeroBanner> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                     decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+                                      border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Text(

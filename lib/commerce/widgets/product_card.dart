@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config.dart';
+import '../../config.dart';
 import '../product_detail/product_detail_page.dart';
 
 class ProductCard extends StatelessWidget {
@@ -26,7 +26,7 @@ class ProductCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5))
         ],
       ),
       child: InkWell(

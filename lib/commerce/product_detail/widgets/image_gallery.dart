@@ -1,5 +1,5 @@
+import '../../../config.dart';
 import 'package:flutter/material.dart';
-import '../../config.dart';
 
 class ImageGallery extends StatelessWidget {
   final List<String> images;
@@ -128,7 +128,7 @@ class ImageGallery extends StatelessWidget {
                         width: 2,
                       ),
                       boxShadow: isSelected ? [
-                        BoxShadow(color: const Color(0xFFDC2626).withValues(alpha: 0.1), blurRadius: 10)
+                        BoxShadow(color: const Color(0xFFDC2626).withOpacity(0.1), blurRadius: 10)
                       ] : null,
                     ),
                     child: ClipRRect(

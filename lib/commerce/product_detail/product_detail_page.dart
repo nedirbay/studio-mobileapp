@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../widgets/top_bar.dart';
-import '../widgets/app_header.dart';
-import '../widgets/app_footer.dart';
-import '../config.dart';
+import '../../widgets/top_bar.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/app_footer.dart';
+import '../../config.dart';
 import '../commerce_order_page.dart';
 import './widgets/image_gallery.dart';
 import './widgets/full_screen_image.dart';
+import '../widgets/commerce_bottom_nav.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final int productId;
@@ -94,7 +95,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const TopBar(),
-              const AppHeader(),
+              AppHeader(),
               
               // Breadcrumb
               Padding(
@@ -227,11 +228,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
               
               const SizedBox(height: 20),
-              const AppFooter(),
+              AppFooter(),
             ],
           ),
         ),
       ),
+      bottomNavigationBar: CommerceBottomNav(currentIndex: 1),
     );
   }
 

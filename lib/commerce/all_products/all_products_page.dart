@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../widgets/top_bar.dart';
-import '../widgets/app_header.dart';
-import '../widgets/app_footer.dart';
-import '../config.dart';
+import '../../widgets/top_bar.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/app_footer.dart';
+import '../../config.dart';
 import '../widgets/product_card.dart';
 import './widgets/filter_drawer.dart';
 
@@ -32,7 +32,7 @@ class _AllProductsPageState extends State<AllProductsPage> {
   bool inStockOnly = false;
   bool onSaleOnly = false;
   
-  List<String> categories = ['Smartfonlar', 'Noutbuklar', 'Planşetler', 'Aksesurlar', 'TV \u0026 Audio'];
+  List<String> categories = ['Smartfonlar', 'Noutbuklar', 'Planşetler', 'Aksesurlar', 'TV & Audio'];
   List<String> brands = ['Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Asus', 'HP'];
 
   final TextEditingController minPriceController = TextEditingController();
@@ -76,12 +76,12 @@ class _AllProductsPageState extends State<AllProductsPage> {
         final matchesSearch = prod['name'].toString().toLowerCase().contains(searchQuery.toLowerCase());
         final matchesCategory = selectedCategories.isEmpty || selectedCategories.contains(prod['category_name']);
         final matchesBrand = selectedBrands.isEmpty || selectedBrands.contains(prod['marka']);
-        final matchesPrice = (prod['price'] as num) >= priceRange.start \u0026\u0026 (prod['price'] as num) <= priceRange.end;
+        final matchesPrice = (prod['price'] as num) >= priceRange.start && (prod['price'] as num) <= priceRange.end;
         final matchesRating = selectedRatings.isEmpty || selectedRatings.contains(4); // Mock rating match
-        final matchesStock = !inStockOnly || (prod['stock'] != null \u0026\u0026 (prod['stock'] as num) > 0);
-        final matchesSale = !onSaleOnly || (prod['original_price'] != null \u0026\u0026 (prod['original_price'] as num) > (prod['price'] as num));
+        final matchesStock = !inStockOnly || (prod['stock'] != null && (prod['stock'] as num) > 0);
+        final matchesSale = !onSaleOnly || (prod['original_price'] != null && (prod['original_price'] as num) > (prod['price'] as num));
 
-        return matchesSearch \u0026\u0026 matchesCategory \u0026\u0026 matchesBrand \u0026\u0026 matchesPrice \u0026\u0026 matchesRating \u0026\u0026 matchesStock \u0026\u0026 matchesSale;
+        return matchesSearch && matchesCategory && matchesBrand && matchesPrice && matchesRating && matchesStock && matchesSale;
       }).toList();
     });
   }
@@ -105,7 +105,7 @@ class _AllProductsPageState extends State<AllProductsPage> {
     int activeFiltersCount = 0;
     if (selectedCategories.isNotEmpty) activeFiltersCount++;
     if (selectedBrands.isNotEmpty) activeFiltersCount++;
-    if (priceRange.start \u003e 0 || priceRange.end \u003c 10000) activeFiltersCount++;
+    if (priceRange.start > 0 || priceRange.end < 10000) activeFiltersCount++;
     if (selectedRatings.isNotEmpty) activeFiltersCount++;
     if (inStockOnly) activeFiltersCount++;
     if (onSaleOnly) activeFiltersCount++;
@@ -163,7 +163,7 @@ class _AllProductsPageState extends State<AllProductsPage> {
         child: Column(
           children: [
             const TopBar(),
-            const AppHeader(),
+            AppHeader(),
             
             // Search and Filter Bar
             Padding(
@@ -175,7 +175,7 @@ class _AllProductsPageState extends State<AllProductsPage> {
                       // Back button
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
-                        onPressed: () =\u003e Navigator.pop(context),
+                        onPressed: () => Navigator.pop(context),
                       ),
                       const SizedBox(width: 8),
                       // Filter button
@@ -188,10 +188,10 @@ class _AllProductsPageState extends State<AllProductsPage> {
                             ),
                             child: IconButton(
                               icon: const Icon(Icons.tune_rounded, color: Color(0xFF111827)),
-                              onPressed: () =\u003e _scaffoldKey.currentState?.openDrawer(),
+                              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                             ),
                           ),
-                          if (activeFiltersCount \u003e 0)
+                          if (activeFiltersCount > 0)
                             Positioned(
                               right: 0,
                               top: 0,
@@ -214,7 +214,7 @@ class _AllProductsPageState extends State<AllProductsPage> {
                           ),
                           child: TextField(
                             onChanged: (val) {
-                              setState(() =\u003e searchQuery = val);
+                              setState(() => searchQuery = val);
                               _filterProducts();
                             },
                             decoration: const InputDecoration(
@@ -247,13 +247,14 @@ class _AllProductsPageState extends State<AllProductsPage> {
                             mainAxisSpacing: 16,
                           ),
                           itemCount: filteredProducts.length,
-                          itemBuilder: (context, index) =\u003e ProductCard(prod: filteredProducts[index]),
+                          itemBuilder: (context, index) => ProductCard(prod: filteredProducts[index]),
                         ),
             ),
-            const AppFooter(),
+            AppFooter(),
           ],
         ),
       ),
+      bottomNavigationBar: CommerceBottomNav(currentIndex: 1),
     );
   }
 }
