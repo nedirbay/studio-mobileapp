@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_footer.dart';
 import '../config.dart';
+import '../services/commerce_service.dart';
 
 class BrandsPage extends StatefulWidget {
   final String apiBaseUrl;
@@ -27,16 +26,15 @@ class _BrandsPageState extends State<BrandsPage> {
 
   Future<void> fetchBrands() async {
     try {
-      final response = await http.get(Uri.parse('${Config.apiBaseUrl}/commerce/brands'));
-      if (response.statusCode == 200) {
-        setState(() {
-          brands = json.decode(utf8.decode(response.bodyBytes)) ?? [];
-          isLoading = false;
-        });
-      }
+      final result = await CommerceService.brands();
+      if (!mounted) return;
+      setState(() {
+        brands = result;
+        isLoading = false;
+      });
     } catch (e) {
       debugPrint('Error fetching brands: $e');
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 

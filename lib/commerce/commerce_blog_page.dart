@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../config.dart';
 import '../widgets/top_bar.dart';
+import '../services/blog_service.dart';
 
 class CommerceBlogPage extends StatefulWidget {
   const CommerceBlogPage({super.key});
@@ -23,16 +22,15 @@ class _CommerceBlogPageState extends State<CommerceBlogPage> {
 
   Future<void> fetchPosts() async {
     try {
-      final response = await http.get(Uri.parse('${Config.apiBaseUrl}/blog/posts/'));
-      if (response.statusCode == 200) {
-        setState(() {
-          posts = json.decode(utf8.decode(response.bodyBytes)) ?? [];
-          isLoading = false;
-        });
-      }
+      final result = await BlogService.list();
+      if (!mounted) return;
+      setState(() {
+        posts = result;
+        isLoading = false;
+      });
     } catch (e) {
       debugPrint('Error fetching blog posts: $e');
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 

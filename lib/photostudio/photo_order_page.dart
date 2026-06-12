@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../config.dart';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
+import '../services/orders_service.dart';
 
 class PhotoOrderPage extends StatefulWidget {
   final String serviceName;
@@ -25,31 +23,22 @@ class _PhotoOrderPageState extends State<PhotoOrderPage> {
     setState(() => isSubmitting = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('${Config.apiBaseUrl}/orders'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'customer_name': _nameController.text,
-          'customer_phone': _phoneController.text,
-          'order_type_name': 'Photo Studio',
-          'description': 'Sargyt: ${widget.serviceName}',
-          'status': 'pending',
-        }),
+      await OrdersService.createStudioOrder(
+        customerName: _nameController.text,
+        customerPhone: _phoneController.text,
       );
-
-      if (response.statusCode == 201) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sargydyňyz kabul edildi!'), backgroundColor: Colors.green),
-        );
-        Navigator.pop(context);
-      } else {
-        throw Exception('Sargyt ugradyp bolmady');
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sargydyňyz kabul edildi!'), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ýalňyşlyk ýüze çykdy: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Ýalňyşlyk ýüze çykdy: ${e.toString().replaceFirst('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => isSubmitting = false);

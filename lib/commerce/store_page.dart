@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_footer.dart';
 import 'product_detail/product_detail_page.dart';
 import 'category_page.dart';
-import 'commerce_blog_page.dart';
-import 'all_products/all_products_page.dart';
 import '../config.dart';
-import '../identity/profile_page.dart';
 import '../services/sync_service.dart';
+import '../services/commerce_service.dart';
 
 import 'widgets/commerce_bottom_nav.dart';
 
@@ -38,29 +34,24 @@ class _StorePageState extends State<StorePage> {
 
   Future<void> fetchData() async {
     try {
-      final catResponse = await http.get(Uri.parse('${Config.apiBaseUrl}/commerce/categories'));
-      final prodResponse = await http.get(Uri.parse('${Config.apiBaseUrl}/commerce/products'));
-      final bannerResponse = await http.get(Uri.parse('${Config.apiBaseUrl}/banners'));
-      final brandResponse = await http.get(Uri.parse('${Config.apiBaseUrl}/commerce/brands'));
-
-      if (catResponse.statusCode == 200 && prodResponse.statusCode == 200 && 
-          bannerResponse.statusCode == 200 && brandResponse.statusCode == 200) {
-        setState(() {
-          categories = json.decode(utf8.decode(catResponse.bodyBytes)) ?? [];
-          products = json.decode(utf8.decode(prodResponse.bodyBytes)) ?? [];
-          banners = json.decode(utf8.decode(bannerResponse.bodyBytes)) ?? [];
-          brands = json.decode(utf8.decode(brandResponse.bodyBytes)) ?? [];
-          isLoading = false;
-        });
-        SyncService.checkForUpdates();
-      } else {
-        throw Exception('Failed to load data');
-      }
-    } catch (e) {
-      debugPrint('Error fetching data: $e');
+      final results = await Future.wait([
+        CommerceService.categories(),
+        CommerceService.products(),
+        CommerceService.banners(),
+        CommerceService.brands(),
+      ]);
+      if (!mounted) return;
       setState(() {
+        categories = results[0];
+        products = results[1];
+        banners = results[2];
+        brands = results[3];
         isLoading = false;
       });
+      SyncService.checkForUpdates();
+    } catch (e) {
+      debugPrint('Error fetching data: $e');
+      if (mounted) setState(() => isLoading = false);
     }
   }
 

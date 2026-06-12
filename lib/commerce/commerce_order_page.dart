@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../config.dart';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
+import '../services/orders_service.dart';
 
 class CommerceOrderPage extends StatefulWidget {
+  final int productId;
   final String productName;
   final double price;
-  const CommerceOrderPage({super.key, required this.productName, required this.price});
+  const CommerceOrderPage({
+    super.key,
+    required this.productId,
+    required this.productName,
+    required this.price,
+  });
 
   @override
   State<CommerceOrderPage> createState() => _CommerceOrderPageState();
@@ -26,36 +30,24 @@ class _CommerceOrderPageState extends State<CommerceOrderPage> {
     setState(() => isSubmitting = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('${Config.apiBaseUrl}/commerce/orders/'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'customer_name': _nameController.text,
-          'customer_phone': _phoneController.text,
-          'items': [
-            {
-              'product_name': widget.productName,
-              'quantity': 1,
-              'price': widget.price,
-            }
-          ],
-          'status': 'pending',
-        }),
+      await OrdersService.createProductOrder(
+        fullName: _nameController.text,
+        phoneNumber: _phoneController.text,
+        productId: widget.productId,
+        quantity: 1,
       );
-
-      if (response.statusCode == 201) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sargydyňyz kabul edildi!'), backgroundColor: Colors.green),
-        );
-        Navigator.pop(context);
-      } else {
-        throw Exception('Sargyt ugradyp bolmady');
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sargydyňyz kabul edildi!'), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ýalňyşlyk ýüze çykdy: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Ýalňyşlyk ýüze çykdy: ${e.toString().replaceFirst('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => isSubmitting = false);

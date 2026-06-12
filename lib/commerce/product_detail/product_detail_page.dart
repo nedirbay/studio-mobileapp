@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../../widgets/top_bar.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_footer.dart';
-import '../../config.dart';
+import '../../services/commerce_service.dart';
 import '../commerce_order_page.dart';
 import './widgets/image_gallery.dart';
 import './widgets/full_screen_image.dart';
@@ -43,27 +41,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Future<void> fetchProduct() async {
     try {
-      final response = await http.get(Uri.parse('${Config.apiBaseUrl}/commerce/products/${widget.productId}'));
-      if (response.statusCode == 200) {
-        setState(() {
-          product = json.decode(utf8.decode(response.bodyBytes));
-          isLoading = false;
-        });
-      }
+      final result = await CommerceService.productDetail(widget.productId);
+      if (!mounted) return;
+      setState(() {
+        product = result;
+        isLoading = false;
+      });
     } catch (e) {
       debugPrint('Error fetching product: $e');
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   Future<void> fetchReviews() async {
     try {
-      final response = await http.get(Uri.parse('${Config.apiBaseUrl}/commerce/products/${widget.productId}/reviews'));
-      if (response.statusCode == 200) {
-        setState(() {
-          reviews = json.decode(utf8.decode(response.bodyBytes)) ?? [];
-        });
-      }
+      final result = await CommerceService.reviews(widget.productId);
+      if (!mounted) return;
+      setState(() {
+        reviews = result;
+      });
     } catch (e) {
       debugPrint('Error fetching reviews: $e');
     }
@@ -183,6 +179,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => CommerceOrderPage(
+                                productId: widget.productId,
                                 productName: product!['name'] ?? 'Haryt',
                                 price: (product!['price'] as num).toDouble(),
                               ),

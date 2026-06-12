@@ -4,8 +4,8 @@ import 'dart:convert';
 import '../../widgets/top_bar.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/app_footer.dart';
-import '../../config.dart';
 import '../widgets/product_card.dart';
+import '../widgets/commerce_bottom_nav.dart';
 import './widgets/filter_drawer.dart';
 
 class AllProductsPage extends StatefulWidget {

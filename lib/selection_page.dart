@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'commerce/store_page.dart';
 import 'photostudio/photostudio_page.dart';
+import 'promotions/promotions_page.dart';
 import 'widgets/top_bar.dart';
 import 'identity/profile_page.dart';
-import 'identity/login_page.dart';
 
 class SelectionPage extends StatelessWidget {
   const SelectionPage({super.key});
@@ -86,6 +86,25 @@ class SelectionPage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const PhotoStudioPage()),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Aksiýalar we sowgatlar card
+                    SelectionCard(
+                      title: 'Aksiýalar we Sowgatlar',
+                      subtitle: 'Açyk bäsleşiklere we aksiýalara gatnaşyp,\nsowgatlary gazanyň.',
+                      backgroundColor: Colors.white,
+                      borderColor: const Color(0xFFF3F4F6),
+                      iconData: Icons.card_giftcard_outlined,
+                      iconColor: const Color(0xFFDC2626),
+                      arrowColor: Colors.black,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PromotionsPage()),
                         );
                       },
                     ),

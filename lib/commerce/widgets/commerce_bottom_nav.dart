@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config.dart';
+import '../../config.dart';
 import '../all_products/all_products_page.dart';
 import '../commerce_blog_page.dart';
 import '../../identity/profile_page.dart';

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_footer.dart';
 import 'product_detail/product_detail_page.dart';
 import '../config.dart';
+import '../services/commerce_service.dart';
 
 class CategoryPage extends StatefulWidget {
   final int categoryId;
@@ -30,17 +29,15 @@ class _CategoryPageState extends State<CategoryPage> {
 
   Future<void> fetchProducts() async {
     try {
-      final response = await http.get(Uri.parse('${Config.apiBaseUrl}/commerce/products'));
-      if (response.statusCode == 200) {
-        final allProducts = json.decode(utf8.decode(response.bodyBytes)) as List;
-        setState(() {
-          products = allProducts.where((p) => p['category_id'] == widget.categoryId).toList();
-          isLoading = false;
-        });
-      }
+      final allProducts = await CommerceService.products();
+      if (!mounted) return;
+      setState(() {
+        products = allProducts.where((p) => p['category_id'] == widget.categoryId).toList();
+        isLoading = false;
+      });
     } catch (e) {
       debugPrint('Error fetching products: $e');
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
