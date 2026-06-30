@@ -47,6 +47,28 @@ class OrdersService {
     return Map<String, dynamic>.from(json.decode(utf8.decode(res.bodyBytes)) as Map);
   }
 
+  /// Creates a commerce order for multiple items.
+  static Future<Map<String, dynamic>> createCartOrder({
+    required String fullName,
+    required String phoneNumber,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final res = await client.post(
+      Uri.parse('${Config.apiBaseUrl}/commerce/orders'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'full_name': fullName,
+        'phone_number': phoneNumber,
+        'status': 'pending',
+        'items': items,
+      }),
+    );
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception(_errorMessage(res, 'Sargyt ugradyp bolmady'));
+    }
+    return Map<String, dynamic>.from(json.decode(utf8.decode(res.bodyBytes)) as Map);
+  }
+
   /// Creates a photo-studio service booking.
   static Future<Map<String, dynamic>> createStudioOrder({
     required String customerName,

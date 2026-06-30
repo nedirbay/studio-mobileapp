@@ -41,6 +41,11 @@ class CommerceService {
     return _asList(_decode(res, 'banners'));
   }
 
+  static Future<List<dynamic>> promos() async {
+    final res = await client.get(Uri.parse('${Config.apiBaseUrl}/promos'));
+    return _asList(_decode(res, 'promos'));
+  }
+
   static Future<Map<String, dynamic>> productDetail(int productId) async {
     final res = await client.get(Uri.parse('${Config.apiBaseUrl}/commerce/products/$productId'));
     final decoded = _decode(res, 'product');

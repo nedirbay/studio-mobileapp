@@ -42,6 +42,7 @@ class Campaign {
   final bool isActive;
   final bool joinedByMe;
   final int? timeLeftSeconds;
+  final String? createdAt;
 
   Campaign({
     required this.id,
@@ -66,6 +67,7 @@ class Campaign {
     this.isActive = false,
     this.joinedByMe = false,
     this.timeLeftSeconds,
+    this.createdAt,
   });
 
   factory Campaign.fromJson(Map<String, dynamic> json) {
@@ -113,6 +115,7 @@ class Campaign {
       isActive: json['is_active'] == true,
       joinedByMe: json['joined_by_me'] == true,
       timeLeftSeconds: parseInt(json['time_left_seconds']),
+      createdAt: json['created_at']?.toString(),
     );
   }
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
-import '../widgets/app_footer.dart';
 import 'product_detail/product_detail_page.dart';
 import '../config.dart';
 import '../services/commerce_service.dart';
@@ -127,7 +126,6 @@ class _CategoryPageState extends State<CategoryPage> {
                 ),
               
               const SizedBox(height: 60),
-              const AppFooter(),
             ],
           ),
         ),

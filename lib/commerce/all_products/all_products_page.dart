@@ -3,15 +3,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../widgets/top_bar.dart';
 import '../../widgets/app_header.dart';
-import '../../widgets/app_footer.dart';
 import '../widgets/product_card.dart';
 import '../widgets/commerce_bottom_nav.dart';
 import './widgets/filter_drawer.dart';
 
 class AllProductsPage extends StatefulWidget {
   final String apiBaseUrl;
+  final bool isEmbedded;
 
-  const AllProductsPage({super.key, required this.apiBaseUrl});
+  const AllProductsPage({super.key, required this.apiBaseUrl, this.isEmbedded = false});
 
   @override
   State<AllProductsPage> createState() => _AllProductsPageState();
@@ -162,8 +162,10 @@ class _AllProductsPageState extends State<AllProductsPage> {
       body: SafeArea(
         child: Column(
           children: [
-            const TopBar(),
-            AppHeader(),
+            if (!widget.isEmbedded) ...[
+              const TopBar(),
+              AppHeader(),
+            ],
             
             // Search and Filter Bar
             Padding(
@@ -172,12 +174,14 @@ class _AllProductsPageState extends State<AllProductsPage> {
                 children: [
                   Row(
                     children: [
-                      // Back button
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 8),
+                      if (!widget.isEmbedded) ...[
+                        // Back button
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Color(0xFF111827)),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       // Filter button
                       Stack(
                         children: [
@@ -250,11 +254,10 @@ class _AllProductsPageState extends State<AllProductsPage> {
                           itemBuilder: (context, index) => ProductCard(prod: filteredProducts[index]),
                         ),
             ),
-            AppFooter(),
           ],
         ),
       ),
-      bottomNavigationBar: CommerceBottomNav(currentIndex: 1),
+      bottomNavigationBar: widget.isEmbedded ? null : CommerceBottomNav(currentIndex: 1),
     );
   }
 }

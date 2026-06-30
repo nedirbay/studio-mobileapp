@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
-import '../widgets/app_footer.dart';
 import '../models/studio_media.dart';
 import 'photo_order_page.dart';
 
@@ -79,7 +78,6 @@ class StudioMediaDetailPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-              const AppFooter(),
             ],
           ),
         ),

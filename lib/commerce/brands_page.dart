@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
-import '../widgets/app_footer.dart';
 import '../config.dart';
 import '../services/commerce_service.dart';
 
@@ -162,7 +161,6 @@ class _BrandsPageState extends State<BrandsPage> {
                 ),
               
               const SizedBox(height: 60),
-              const AppFooter(),
             ],
           ),
         ),

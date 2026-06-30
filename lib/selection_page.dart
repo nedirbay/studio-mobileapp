@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'commerce/store_page.dart';
-import 'photostudio/photostudio_page.dart';
-import 'promotions/promotions_page.dart';
+import 'commerce/harytlar_main_page.dart';
+import 'photostudio/studio_main_page.dart';
+import 'promotions/sowgatlar_main_page.dart';
 import 'widgets/top_bar.dart';
 import 'identity/profile_page.dart';
 
@@ -66,7 +66,7 @@ class SelectionPage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const StorePage()),
+                          MaterialPageRoute(builder: (context) => const HarytlarMainPage()),
                         );
                       },
                     ),
@@ -85,7 +85,7 @@ class SelectionPage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const PhotoStudioPage()),
+                          MaterialPageRoute(builder: (context) => const StudioMainPage()),
                         );
                       },
                     ),
@@ -104,7 +104,7 @@ class SelectionPage extends StatelessWidget {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const PromotionsPage()),
+                          MaterialPageRoute(builder: (context) => const SowgatlarMainPage()),
                         );
                       },
                     ),

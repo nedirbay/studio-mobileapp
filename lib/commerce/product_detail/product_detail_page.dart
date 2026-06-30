@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/top_bar.dart';
 import '../../widgets/app_header.dart';
-import '../../widgets/app_footer.dart';
 import '../../services/commerce_service.dart';
 import '../commerce_order_page.dart';
 import './widgets/image_gallery.dart';
@@ -225,7 +224,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
               
               const SizedBox(height: 20),
-              AppFooter(),
             ],
           ),
         ),

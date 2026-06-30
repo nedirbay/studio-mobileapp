@@ -10,11 +10,9 @@ class TopBar extends StatelessWidget {
       path: phoneNumber.replaceAll(RegExp(r'[\s-]'), ''),
     );
     try {
-      if (await canLaunchUrl(launchUri)) {
-        await launchUrl(launchUri);
-      }
+      await launchUrl(launchUri);
     } catch (e) {
-      debugPrint('Could not launch $launchUri');
+      debugPrint('Could not launch $launchUri: $e');
     }
   }
 
