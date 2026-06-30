@@ -6,6 +6,7 @@ import '../commerce_order_page.dart';
 import './widgets/image_gallery.dart';
 import './widgets/full_screen_image.dart';
 import '../widgets/commerce_bottom_nav.dart';
+import '../../services/cart_service.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final int productId;
@@ -23,6 +24,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool isLoading = true;
   int _currentImageIndex = 0;
   String activeTab = 'specs'; // 'specs' or 'reviews'
+  int quantity = 1;
   final PageController _pageController = PageController();
 
   @override
@@ -108,7 +110,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                 ),
               ),
-
               ImageGallery(
                 images: images,
                 currentIndex: _currentImageIndex,
@@ -168,38 +169,66 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                     const SizedBox(height: 32),
                     
-                    // Add to Cart
-                    SizedBox(
-                      width: double.infinity,
-                      height: 60,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CommerceOrderPage(
-                                productId: widget.productId,
-                                productName: product!['name'] ?? 'Haryt',
-                                price: (product!['price'] as num).toDouble(),
+                    // Buttons Row (Sebede goş / Sargyt et)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 60,
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                CartService().addToCart(product!, quantity: quantity);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${product!['name']} sebede goşuldy!'),
+                                    duration: const Duration(seconds: 1),
+                                  ),
+                                );
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFDC2626), width: 1.5),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              icon: const Icon(Icons.add_shopping_cart, color: Color(0xFFDC2626), size: 20),
+                              label: const Text(
+                                'Sebede goş',
+                                style: TextStyle(color: Color(0xFFDC2626), fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                             ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFDC2626),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          elevation: 0,
+                          ),
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.shopping_cart_outlined, size: 22),
-                            SizedBox(width: 12),
-                            Text('Häzir sargyt et', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                          ],
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 60,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CommerceOrderPage(
+                                      productId: widget.productId,
+                                      productName: product!['name'] ?? 'Haryt',
+                                      price: (product!['price'] as num).toDouble(),
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFDC2626),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                elevation: 0,
+                              ),
+                              icon: const Icon(Icons.shopping_cart_outlined, size: 20),
+                              label: const Text(
+                                'Sargyt et',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                     
                     const SizedBox(height: 40),
@@ -249,17 +278,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () {}, 
+                    onPressed: quantity > 1 ? () => setState(() => quantity--) : null, 
                     icon: const Icon(Icons.remove, size: 18),
                     padding: const EdgeInsets.all(8),
                     constraints: const BoxConstraints(),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('1', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('$quantity', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                   IconButton(
-                    onPressed: () {}, 
+                    onPressed: () => setState(() => quantity++), 
                     icon: const Icon(Icons.add, size: 18, color: Color(0xFFDC2626)),
                     padding: const EdgeInsets.all(8),
                     constraints: const BoxConstraints(),

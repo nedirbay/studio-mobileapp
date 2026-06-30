@@ -33,7 +33,7 @@ class _SowgatlarMainPageState extends State<SowgatlarMainPage> {
     ];
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF9FAFB),
       body: SafeArea(
         child: Column(
           children: [

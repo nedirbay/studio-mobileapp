@@ -112,7 +112,7 @@ class _AllProductsPageState extends State<AllProductsPage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF9FAFB),
       drawer: FilterDrawer(
         categories: categories,
         brands: brands,

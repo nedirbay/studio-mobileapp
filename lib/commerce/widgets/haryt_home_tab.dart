@@ -33,15 +33,21 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
   int _currentBannerIndex = 0;
   final PageController _bannerController = PageController();
 
+  void _onCartChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchHomeData();
     _startTimer();
+    CartService().addListener(_onCartChanged);
   }
 
   @override
   void dispose() {
+    CartService().removeListener(_onCartChanged);
     _countdownTimer?.cancel();
     _bannerController.dispose();
     super.dispose();
@@ -428,6 +434,7 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
   }
 
   Widget _buildProductCard(Map<String, dynamic> prod) {
+    final inCart = CartService().items.any((item) => item['product']['id'].toString() == prod['id'].toString());
     String relativeUrl = '';
     if (prod['media'] != null && prod['media'] is List && prod['media'].isNotEmpty) {
       relativeUrl = prod['media'][0]['url'].toString();
@@ -526,20 +533,37 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
                     height: 32,
                     child: OutlinedButton(
                       onPressed: () {
-                        CartService().addToCart(prod);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${prod['name']} sebede goşuldy!'),
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
+                        if (inCart) {
+                          CartService().removeFromCart(prod['id']);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${prod['name']} sebetden aýryldy!'),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        } else {
+                          CartService().addToCart(prod);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${prod['name']} sebede goşuldy!'),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        }
                       },
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFDC2626)),
+                        side: BorderSide(color: inCart ? Colors.grey : const Color(0xFFDC2626)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: EdgeInsets.zero,
                       ),
-                      child: const Text('Sebede goş', style: TextStyle(color: Color(0xFFDC2626), fontSize: 11, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        inCart ? 'Aýyr' : 'Sebede goş',
+                        style: TextStyle(
+                          color: inCart ? Colors.grey : const Color(0xFFDC2626),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],
