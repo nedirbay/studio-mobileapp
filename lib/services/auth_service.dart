@@ -95,6 +95,52 @@ class AuthService extends ChangeNotifier {
     return Map<String, dynamic>.from(json.decode(utf8.decode(res.bodyBytes)) as Map);
   }
 
+  Future<Map<String, dynamic>> verifyOtp(String email, String code) async {
+    final res = await client.post(
+      Uri.parse('${Config.apiBaseUrl}/auth/verify-otp'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'email': email,
+        'code': code,
+      }),
+    );
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      String message = 'Kod nädogry ýa-da möwriti öten';
+      try {
+        final body = json.decode(utf8.decode(res.bodyBytes));
+        if (body is Map && body['error'] != null) {
+          message = body['error'].toString();
+        }
+      } catch (_) {}
+      throw Exception(message);
+    }
+    final body = json.decode(utf8.decode(res.bodyBytes));
+    if (body['jwt'] != null && body['user'] != null) {
+      await saveSession(body['jwt'].toString(), Map<String, dynamic>.from(body['user'] as Map));
+    }
+    return Map<String, dynamic>.from(body as Map);
+  }
+
+  Future<void> resendOtp(String email) async {
+    final res = await client.post(
+      Uri.parse('${Config.apiBaseUrl}/auth/resend-otp'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'email': email,
+      }),
+    );
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      String message = 'Kod ugratmak başartmady';
+      try {
+        final body = json.decode(utf8.decode(res.bodyBytes));
+        if (body is Map && body['error'] != null) {
+          message = body['error'].toString();
+        }
+      } catch (_) {}
+      throw Exception(message);
+    }
+  }
+
   Future<void> changePassword(String oldPassword, String newPassword) async {
     if (_token == null) throw Exception('Ulanyjy awtorizirlenen däl');
     final res = await client.post(

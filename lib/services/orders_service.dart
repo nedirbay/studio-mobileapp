@@ -73,6 +73,8 @@ class OrdersService {
   static Future<Map<String, dynamic>> createStudioOrder({
     required String customerName,
     required String customerPhone,
+    int? orderTypeId,
+    List<Map<String, dynamic>>? days,
     num totalAmount = 0,
     num paidAmount = 0,
   }) async {
@@ -82,8 +84,10 @@ class OrdersService {
       body: json.encode({
         'customer_name': customerName,
         'customer_phone': customerPhone,
+        'order_type_id': orderTypeId,
         'total_amount': totalAmount,
         'paid_amount': paidAmount,
+        if (days != null) 'days': days,
       }),
     );
     if (res.statusCode < 200 || res.statusCode >= 300) {

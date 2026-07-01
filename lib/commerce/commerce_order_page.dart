@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
 import '../services/orders_service.dart';
+import '../config.dart';
 
 class CommerceOrderPage extends StatefulWidget {
   final int productId;
@@ -82,8 +83,8 @@ class _CommerceOrderPageState extends State<CommerceOrderPage> {
                         style: const TextStyle(color: Color(0xFF6B7280)),
                       ),
                       Text(
-                        'Baha: \$${widget.price}',
-                        style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                        'Baha: ${widget.price} ${Config.activeCurrencySymbol}',
+                        style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 32),
                       
@@ -124,7 +125,7 @@ class _CommerceOrderPageState extends State<CommerceOrderPage> {
                         child: ElevatedButton(
                           onPressed: isSubmitting ? null : _submitOrder,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: const Color(0xFFDC2626),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),

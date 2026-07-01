@@ -25,8 +25,9 @@ class ProductCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5))
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))
         ],
       ),
       child: InkWell(
@@ -100,13 +101,13 @@ class ProductCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '${prod['price']} TMT',
+                        '${prod['price']} ${Config.activeCurrencySymbol}',
                         style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w900, fontSize: 16),
                       ),
                       if (isOnSale) ...[
                         const SizedBox(width: 6),
                         Text(
-                          '${prod['original_price']}',
+                          '${prod['original_price']} ${Config.activeCurrencySymbol}',
                           style: TextStyle(color: Colors.grey[400], fontSize: 11, decoration: TextDecoration.lineThrough),
                         ),
                       ],

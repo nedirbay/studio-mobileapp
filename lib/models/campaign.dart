@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import '../config.dart';
 
 /// Campaign / promotion item. Mirrors the `Campaign` type used by the
@@ -35,6 +36,7 @@ class Campaign {
   final num? minOrderAmount;
   final int? discountPercent;
   final String? promoCode;
+  final String? bgGradient;
   final bool isFeatured;
   final String status;
   final List<CampaignRule> rulesList;
@@ -60,6 +62,7 @@ class Campaign {
     this.minOrderAmount,
     this.discountPercent,
     this.promoCode,
+    this.bgGradient,
     this.isFeatured = false,
     required this.status,
     this.rulesList = const [],
@@ -108,6 +111,7 @@ class Campaign {
       minOrderAmount: parseNum(json['min_order_amount']),
       discountPercent: parseInt(json['discount_percent']),
       promoCode: json['promo_code']?.toString(),
+      bgGradient: json['bg_gradient']?.toString(),
       isFeatured: json['is_featured'] == true,
       status: (json['status'] ?? 'active').toString(),
       rulesList: rulesList,
@@ -130,4 +134,30 @@ class Campaign {
 
   String? get resolvedImage => resolveMedia(imageUrl);
   String? get resolvedBanner => resolveMedia(bannerUrl);
+
+  List<Color> getGradientColors() {
+    if (bgGradient == null || bgGradient!.isEmpty) {
+      return [const Color(0xFFDC2626), const Color(0xFFF97316)];
+    }
+    if (bgGradient!.contains(',')) {
+      final parts = bgGradient!.split(',');
+      final c1 = _parseColor(parts[0], const Color(0xFFDC2626));
+      final c2 = _parseColor(parts[1], const Color(0xFFF97316));
+      return [c1, c2];
+    }
+    final c = _parseColor(bgGradient!, const Color(0xFFDC2626));
+    return [c, c];
+  }
+
+  static Color _parseColor(String hex, Color fallback) {
+    hex = hex.trim().replaceAll('#', '');
+    if (hex.length == 6) {
+      hex = 'FF$hex';
+    }
+    if (hex.length == 8) {
+      final val = int.tryParse(hex, radix: 16);
+      if (val != null) return Color(val);
+    }
+    return fallback;
+  }
 }

@@ -151,13 +151,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text('${product!['price']} TMT', style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: Color(0xFFDC2626))),
+                        Text('${product!['price']} ${Config.activeCurrencySymbol}', style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: Color(0xFFDC2626))),
                         if (product!['original_price'] != null && (product!['original_price'] as num) > (product!['price'] as num)) ...[
-                          const SizedBox(width: 12),
-                          Text(
-                            '${product!['original_price']}', 
-                            style: const TextStyle(fontSize: 20, color: Color(0xFF9CA3AF), decoration: TextDecoration.lineThrough)
-                          ),
+                           const SizedBox(width: 12),
+                           Text(
+                             '${product!['original_price']} ${Config.activeCurrencySymbol}', 
+                             style: const TextStyle(fontSize: 20, color: Color(0xFF9CA3AF), decoration: TextDecoration.lineThrough)
+                           ),
                         ],
                       ],
                     ),

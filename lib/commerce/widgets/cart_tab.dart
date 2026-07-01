@@ -194,7 +194,14 @@ class _CartTabState extends State<CartTab> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFF3F4F6), width: 1.5),
+                  border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -233,10 +240,10 @@ class _CartTabState extends State<CartTab> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                '${prod['price']} TMT',
-                                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 15),
-                              ),
+                               Text(
+                                 '${prod['price']} ${Config.activeCurrencySymbol}',
+                                 style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 15),
+                               ),
                               Container(
                                 decoration: BoxDecoration(
                                   border: Border.all(color: const Color(0xFFE5E7EB)),
@@ -305,7 +312,7 @@ class _CartTabState extends State<CartTab> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Umumy baha:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF111827))),
-                  Text('${cart.total} TMT', style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 20)),
+                  Text('${cart.total} ${Config.activeCurrencySymbol}', style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 20)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -457,7 +464,7 @@ class _CartTabState extends State<CartTab> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text('Umumy baha:', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF111827))),
-                            Text('${cart.total} TMT', style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 18)),
+                            Text('${cart.total} ${Config.activeCurrencySymbol}', style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 18)),
                           ],
                         ),
                       ],

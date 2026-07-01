@@ -154,43 +154,58 @@ class _VideosTabBodyState extends State<_VideosTabBody> {
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.8,
+          childAspectRatio: 0.74,
         ),
         itemCount: _videos.length,
         itemBuilder: (context, index) {
           final media = _videos[index];
           final preview = media.previewUrl ?? media.mediaUrl;
 
-          return InkWell(
-            onTap: () => _playVideo(media),
-            borderRadius: BorderRadius.circular(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (preview != null)
-                          Image.network(preview, fit: BoxFit.cover, errorBuilder: (c, e, s) => _fallback())
-                        else
-                          _fallback(),
-                        Container(color: Colors.black26),
-                        const Center(child: Icon(Icons.play_circle_fill, size: 48, color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  media.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black),
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(18.5),
+              child: InkWell(
+                onTap: () => _playVideo(media),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (preview != null)
+                            Image.network(preview, fit: BoxFit.cover, errorBuilder: (c, e, s) => _fallback())
+                          else
+                            _fallback(),
+                          Container(color: Colors.black26),
+                          const Center(child: Icon(Icons.play_circle_fill, size: 48, color: Colors.white)),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: Text(
+                        media.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         },
@@ -260,47 +275,65 @@ class _PhotosTabBodyState extends State<_PhotosTabBody> {
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.8,
+          childAspectRatio: 0.74,
         ),
         itemCount: _photos.length,
         itemBuilder: (context, index) {
           final media = _photos[index];
           final preview = media.mediaUrl;
 
-          return InkWell(
-            onTap: () {
-              if (preview != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PhotoViewerPage(imageUrl: preview, title: media.title),
-                  ),
-                );
-              }
-            },
-            borderRadius: BorderRadius.circular(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Hero(
-                      tag: preview ?? '',
-                      child: preview != null
-                          ? Image.network(preview, fit: BoxFit.cover, errorBuilder: (c, e, s) => _fallback())
-                          : _fallback(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  media.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black),
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(18.5),
+              child: InkWell(
+                onTap: () {
+                  if (preview != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PhotoViewerPage(imageUrl: preview, title: media.title),
+                      ),
+                    );
+                  }
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(18.5)),
+                        child: Hero(
+                          tag: preview ?? '',
+                          child: preview != null
+                              ? Image.network(preview, fit: BoxFit.cover, errorBuilder: (c, e, s) => _fallback())
+                              : _fallback(),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: Text(
+                        media.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         },

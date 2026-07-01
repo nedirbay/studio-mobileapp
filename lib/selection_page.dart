@@ -150,7 +150,14 @@ class SelectionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: borderColor, width: 2),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Stack(
           children: [

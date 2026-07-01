@@ -451,7 +451,14 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF3F4F6), width: 1.5),
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: InkWell(
         onTap: () {
@@ -515,13 +522,13 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
                   Row(
                     children: [
                       Text(
-                        '${prod['price']} TMT',
+                        '${prod['price']} ${Config.activeCurrencySymbol}',
                         style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w900, fontSize: 14),
                       ),
                       if (hasSale) ...[
                         const SizedBox(width: 6),
                         Text(
-                          '${prod['original_price']}',
+                          '${prod['original_price']} ${Config.activeCurrencySymbol}',
                           style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 11, decoration: TextDecoration.lineThrough),
                         ),
                       ],

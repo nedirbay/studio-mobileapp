@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/studio_order_service.dart';
 import '../../services/auth_service.dart';
 import 'package:intl/intl.dart';
+import '../../config.dart';
 
 class StudioOrderTab extends StatefulWidget {
   const StudioOrderTab({super.key});
@@ -19,7 +20,20 @@ class _StudioOrderTabState extends State<StudioOrderTab> {
   @override
   void initState() {
     super.initState();
+    AuthService().addListener(_onAuthChanged);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    AuthService().removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    if (mounted) {
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {
@@ -178,7 +192,14 @@ class _StudioOrderTabState extends State<StudioOrderTab> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                      border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +249,7 @@ class _StudioOrderTabState extends State<StudioOrderTab> {
                               children: [
                                 const Text('Jemi baha', style: TextStyle(color: Colors.grey, fontSize: 11)),
                                 const SizedBox(height: 2),
-                                Text('${order['total_amount']} TMT', style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 15)),
+                                Text('${order['total_amount']} ${Config.activeCurrencySymbol}', style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 15)),
                               ],
                             ),
                             IconButton(

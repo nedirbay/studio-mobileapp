@@ -264,7 +264,14 @@ class _GiftsTabBodyState extends State<_GiftsTabBody> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,7 +293,7 @@ class _GiftsTabBodyState extends State<_GiftsTabBody> {
                               height: 120,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Colors.red[600]!, Colors.orange[500]!],
+                                  colors: c.getGradientColors(),
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),

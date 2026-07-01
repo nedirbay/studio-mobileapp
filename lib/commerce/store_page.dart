@@ -387,7 +387,7 @@ class _StorePageState extends State<StorePage> {
                         Row(
                           children: [
                             Text(
-                              '${prod['price']} TMT',
+                              '${prod['price']} ${Config.activeCurrencySymbol}',
                               style: const TextStyle(
                                 color: Colors.orange,
                                 fontWeight: FontWeight.w900,
@@ -397,7 +397,7 @@ class _StorePageState extends State<StorePage> {
                             if (prod['original_price'] != null && (prod['original_price'] as num) > (prod['price'] as num)) ...[
                               const SizedBox(width: 6),
                               Text(
-                                '${prod['original_price']}',
+                                '${prod['original_price']} ${Config.activeCurrencySymbol}',
                                 style: const TextStyle(
                                   color: Color(0xFF9CA3AF),
                                   fontSize: 11,
