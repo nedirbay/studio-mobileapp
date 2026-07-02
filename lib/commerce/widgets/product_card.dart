@@ -98,19 +98,20 @@ class ProductCard extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, height: 1.2),
                   ),
                   const SizedBox(height: 8),
-                  Row(
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         '${prod['price']} ${Config.activeCurrencySymbol}',
-                        style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w900, fontSize: 16),
+                        style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w900, fontSize: 15),
                       ),
-                      if (isOnSale) ...[
-                        const SizedBox(width: 6),
+                      if (isOnSale)
                         Text(
                           '${prod['original_price']} ${Config.activeCurrencySymbol}',
                           style: TextStyle(color: Colors.grey[400], fontSize: 11, decoration: TextDecoration.lineThrough),
                         ),
-                      ],
                     ],
                   ),
                 ],

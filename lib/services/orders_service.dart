@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config.dart';
+import 'auth_service.dart';
 
 /// Order/booking creation for anonymous customers.
 ///
@@ -94,5 +95,24 @@ class OrdersService {
       throw Exception(_errorMessage(res, 'Sargyt ugradyp bolmady'));
     }
     return Map<String, dynamic>.from(json.decode(utf8.decode(res.bodyBytes)) as Map);
+  }
+
+  /// Lists commerce orders for the currently authenticated user.
+  static Future<List<dynamic>> listCommerceOrders() async {
+    final token = AuthService().token;
+    final res = await client.get(
+      Uri.parse('${Config.apiBaseUrl}/commerce/orders'),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception(_errorMessage(res, 'Sargytlary ýükläp bolmady'));
+    }
+    final decoded = json.decode(utf8.decode(res.bodyBytes));
+    if (decoded is List) return decoded;
+    if (decoded is Map && decoded['results'] is List) return decoded['results'] as List;
+    return const [];
   }
 }

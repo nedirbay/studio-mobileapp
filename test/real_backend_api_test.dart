@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:studioapp/config.dart';
-import 'package:studioapp/services/auth_service.dart';
-import 'package:studioapp/services/commerce_service.dart';
-import 'package:studioapp/services/orders_service.dart';
-import 'package:studioapp/services/studio_order_service.dart';
-import 'package:studioapp/services/promotions_service.dart';
+import 'package:doganlarfoto/config.dart';
+import 'package:doganlarfoto/services/auth_service.dart';
+import 'package:doganlarfoto/services/commerce_service.dart';
+import 'package:doganlarfoto/services/orders_service.dart';
+import 'package:doganlarfoto/services/studio_order_service.dart';
+import 'package:doganlarfoto/services/promotions_service.dart';
 
 void main() {
   setUpAll(() {

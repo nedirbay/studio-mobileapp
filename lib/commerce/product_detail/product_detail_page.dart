@@ -7,6 +7,7 @@ import './widgets/image_gallery.dart';
 import './widgets/full_screen_image.dart';
 import '../widgets/commerce_bottom_nav.dart';
 import '../../services/cart_service.dart';
+import '../../config.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final int productId;

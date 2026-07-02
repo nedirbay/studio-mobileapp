@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 import '../models/campaign.dart';
+import 'auth_service.dart';
 
 /// Talks to the `gifts/campaigns/` backend. Mobile mirror of the web
 /// project's giftsService / GiftsRepository.
@@ -31,7 +32,13 @@ class PromotionsService {
     final uri = Uri.parse('${Config.apiBaseUrl}/gifts/campaigns/')
         .replace(queryParameters: params.isEmpty ? null : params);
 
-    final res = await client.get(uri);
+    final token = AuthService().token;
+    final res = await client.get(
+      uri,
+      headers: {
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
     if (res.statusCode != 200) {
       throw Exception('Failed to load campaigns (${res.statusCode})');
     }
@@ -39,8 +46,13 @@ class PromotionsService {
   }
 
   static Future<List<Campaign>> featured() async {
-    final res =
-        await client.get(Uri.parse('${Config.apiBaseUrl}/gifts/campaigns/featured/'));
+    final token = AuthService().token;
+    final res = await client.get(
+      Uri.parse('${Config.apiBaseUrl}/gifts/campaigns/featured/'),
+      headers: {
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
     if (res.statusCode != 200) {
       throw Exception('Failed to load featured campaigns (${res.statusCode})');
     }
@@ -55,9 +67,13 @@ class PromotionsService {
     String? email,
     String? note,
   }) async {
+    final token = AuthService().token;
     final res = await client.post(
       Uri.parse('${Config.apiBaseUrl}/gifts/campaigns/$campaignId/join/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
       body: json.encode({
         'full_name': fullName,
         'phone': phone,

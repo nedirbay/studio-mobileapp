@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../config.dart';
-import '../all_products/all_products_page.dart';
-import '../commerce_blog_page.dart';
-import '../../identity/profile_page.dart';
+import '../harytlar_main_page.dart';
+import '../../services/settings_service.dart';
+import '../../services/cart_service.dart';
 
 class CommerceBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -11,50 +10,90 @@ class CommerceBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          if (index == currentIndex) return;
+    return ListenableBuilder(
+      listenable: Listenable.merge([SettingsService(), CartService()]),
+      builder: (context, _) {
+        final settings = SettingsService();
+        final cart = CartService();
+        final isDark = settings.isDarkMode;
+        final navBgColor = isDark ? const Color(0xFF1F2937) : Colors.white;
+        final cartCount = cart.count;
 
-          if (index == 0) {
-            // Navigator.popUntil(context, (route) => route.isFirst); // Go back to Home
-            // Or just push if it's simpler for now
-             Navigator.of(context).popUntil((route) => route.isFirst);
-          } else if (index == 1) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => AllProductsPage(apiBaseUrl: Config.apiBaseUrl)));
-          } else if (index == 2) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const CommerceBlogPage()));
-          } else if (index == 3) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFFDC2626), // Changed to brand color
-        unselectedItemColor: const Color(0xFF9CA3AF),
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), activeIcon: Icon(Icons.grid_view_rounded), label: 'Harytlar'),
-          BottomNavigationBarItem(icon: Icon(Icons.article_outlined), activeIcon: Icon(Icons.article_rounded), label: 'Blog'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person_rounded), label: 'Profile'),
-        ],
-      ),
+        return Container(
+          decoration: BoxDecoration(
+            color: navBgColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            currentIndex: currentIndex,
+            onTap: (index) {
+              if (index == currentIndex) return;
+
+              // Pop to selection page (first route) and push HarytlarMainPage with targeted index
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HarytlarMainPage(initialTab: index),
+                ),
+                (route) => route.isFirst,
+              );
+            },
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: navBgColor,
+            selectedItemColor: const Color(0xFFDC2626), // brand color
+            unselectedItemColor: isDark ? Colors.grey[400] : const Color(0xFF9CA3AF),
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
+            selectedFontSize: 12,
+            unselectedFontSize: 12,
+            elevation: 0,
+            items: [
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.home_outlined),
+                activeIcon: const Icon(Icons.home_rounded),
+                label: settings.translate('home_tab'),
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.grid_view_outlined),
+                activeIcon: const Icon(Icons.grid_view_rounded),
+                label: settings.translate('categories_tab'),
+              ),
+              BottomNavigationBarItem(
+                icon: Badge(
+                  label: Text(
+                    '$cartCount',
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                  isLabelVisible: cartCount > 0,
+                  backgroundColor: const Color(0xFFDC2626),
+                  child: const Icon(Icons.shopping_cart_outlined),
+                ),
+                activeIcon: Badge(
+                  label: Text(
+                    '$cartCount',
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                  isLabelVisible: cartCount > 0,
+                  backgroundColor: const Color(0xFFDC2626),
+                  child: const Icon(Icons.shopping_cart_rounded),
+                ),
+                label: settings.translate('cart_tab'),
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.person_outline),
+                activeIcon: const Icon(Icons.person_rounded),
+                label: settings.translate('profile_tab'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

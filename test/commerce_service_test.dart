@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:studioapp/services/commerce_service.dart';
+import 'package:doganlarfoto/services/commerce_service.dart';
 
 void main() {
   tearDown(() => CommerceService.client = http.Client());

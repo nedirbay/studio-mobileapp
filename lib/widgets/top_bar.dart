@@ -30,25 +30,29 @@ class TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB);
+    final textColor = isDark ? Colors.grey[400]! : const Color(0xFF6B7280);
+
     return Container(
-      color: const Color(0xFFF9FAFB),
+      color: bgColor,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
         children: [
-          _buildPhoneItem('+993 64 30-12-57'),
+          _buildPhoneItem('+993 64 30-12-57', textColor),
           const SizedBox(width: 12),
-          _buildPhoneItem('+993 61 24-69-37'),
+          _buildPhoneItem('+993 61 24-69-37', textColor),
           const Spacer(),
           InkWell(
             onTap: () => _sendEmail('doganlarfoto@gmail.com'),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.email_outlined, size: 12, color: Color(0xFF6B7280)),
-                SizedBox(width: 4),
+                Icon(Icons.email_outlined, size: 12, color: textColor),
+                const SizedBox(width: 4),
                 Text(
                   'doganlarfoto@gmail.com',
-                  style: TextStyle(color: Color(0xFF6B7280), fontSize: 10, fontWeight: FontWeight.w500),
+                  style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -58,18 +62,18 @@ class TopBar extends StatelessWidget {
     );
   }
 
-  Widget _buildPhoneItem(String phoneNumber) {
+  Widget _buildPhoneItem(String phoneNumber, Color textColor) {
     return InkWell(
       onTap: () => _makeCall(phoneNumber),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.phone, size: 12, color: Color(0xFF6B7280)),
+          Icon(Icons.phone, size: 12, color: textColor),
           const SizedBox(width: 4),
           Text(
             phoneNumber,
-            style: const TextStyle(
-              color: Color(0xFF6B7280), 
+            style: TextStyle(
+              color: textColor, 
               fontSize: 10, 
               fontWeight: FontWeight.w500,
             ),

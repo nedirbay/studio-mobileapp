@@ -4,117 +4,170 @@ import 'photostudio/studio_main_page.dart';
 import 'promotions/sowgatlar_main_page.dart';
 import 'widgets/top_bar.dart';
 import 'identity/profile_page.dart';
+import 'services/auth_service.dart';
+import 'services/settings_service.dart';
+import 'admin/admin_dashboard_page.dart';
 
 class SelectionPage extends StatelessWidget {
   const SelectionPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const TopBar(),
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Hoş geldiňiz!',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF111827),
-                            letterSpacing: -0.5,
-                          ),
+    return ListenableBuilder(
+      listenable: SettingsService(),
+      builder: (context, _) {
+        final settings = SettingsService();
+        final isDark = settings.isDarkMode;
+
+        return Scaffold(
+          backgroundColor: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              child: ListenableBuilder(
+                listenable: AuthService(),
+                builder: (context, _) {
+                  final auth = AuthService();
+                  final user = auth.user;
+                  final bool isAdmin = auth.isAuthenticated &&
+                      user != null &&
+                      (user['role_name'] == 'Admin' || user['is_superuser'] == true);
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const TopBar(),
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  settings.translate('welcome'),
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : const Color(0xFF111827),
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.person_outline,
+                                    size: 28,
+                                    color: isDark ? Colors.white70 : Colors.black,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const ProfilePage()),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              settings.translate('what_looking_for'),
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+                              ),
+                            ),
+                            const SizedBox(height: 40),
+
+                            // Admin Panel card (only visible to Admin/Superusers)
+                            if (isAdmin) ...[
+                              SelectionCard(
+                                title: settings.translate('admin_panel_card_title'),
+                                subtitle: settings.translate('admin_panel_card_subtitle'),
+                                backgroundColor: isDark ? const Color(0xFF3B1E1E) : const Color(0xFFFEF2F2),
+                                borderColor: isDark ? const Color(0xFF5E2B2B) : const Color(0xFFFCA5A5),
+                                iconData: Icons.admin_panel_settings_outlined,
+                                iconColor: const Color(0xFFDC2626),
+                                arrowColor: const Color(0xFFDC2626),
+                                isDark: isDark,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+
+                            // Harytlar bolumi card
+                            SelectionCard(
+                              title: settings.translate('products_card_title'),
+                              subtitle: settings.translate('products_card_subtitle'),
+                              backgroundColor: isDark ? const Color(0xFF1F2937) : Colors.white,
+                              borderColor: isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+                              iconData: Icons.print_outlined,
+                              iconColor: isDark ? Colors.white70 : Colors.black,
+                              arrowColor: isDark ? Colors.white70 : Colors.black,
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const HarytlarMainPage()),
+                                );
+                              },
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Foto studio card
+                            SelectionCard(
+                              title: settings.translate('studio_card_title'),
+                              subtitle: settings.translate('studio_card_subtitle'),
+                              backgroundColor: isDark ? const Color(0xFF1F2937) : Colors.white,
+                              borderColor: isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+                              iconData: Icons.camera,
+                              iconColor: isDark ? Colors.white70 : Colors.black,
+                              arrowColor: isDark ? Colors.white70 : Colors.black,
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const StudioMainPage()),
+                                );
+                              },
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Aksiýalar we sowgatlar card
+                            SelectionCard(
+                              title: settings.translate('promo_card_title'),
+                              subtitle: settings.translate('promo_card_subtitle'),
+                              backgroundColor: isDark ? const Color(0xFF1F2937) : Colors.white,
+                              borderColor: isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+                              iconData: Icons.card_giftcard_outlined,
+                              iconColor: const Color(0xFFDC2626),
+                              arrowColor: isDark ? Colors.white70 : Colors.black,
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const SowgatlarMainPage()),
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.person_outline, size: 28),
-                          onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Näme gözleýärsiniz?',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Color(0xFF6B7280),
                       ),
-                    ),
-                    const SizedBox(height: 40),
-                    
-                    // Harytlar bolumi card
-                    SelectionCard(
-                      title: 'Harytlar bölümi',
-                      subtitle: 'Fotoapparatlar, kameralar, printerler we ş.m.',
-                      backgroundColor: Colors.white,
-                      borderColor: const Color(0xFFF3F4F6),
-                      iconData: Icons.print_outlined,
-                      iconColor: Colors.black,
-                      arrowColor: Colors.black,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const HarytlarMainPage()),
-                        );
-                      },
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Foto studio card
-                    SelectionCard(
-                      title: 'Foto studio',
-                      subtitle: 'Surat we video hyzmatlary.\nToýlar, belli günler we beýleki hyzmatlar.',
-                      backgroundColor: Colors.white,
-                      borderColor: const Color(0xFFF3F4F6),
-                      iconData: Icons.camera,
-                      iconColor: Colors.black,
-                      arrowColor: Colors.black,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const StudioMainPage()),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Aksiýalar we sowgatlar card
-                    SelectionCard(
-                      title: 'Aksiýalar we Sowgatlar',
-                      subtitle: 'Açyk bäsleşiklere we aksiýalara gatnaşyp,\nsowgatlary gazanyň.',
-                      backgroundColor: Colors.white,
-                      borderColor: const Color(0xFFF3F4F6),
-                      iconData: Icons.card_giftcard_outlined,
-                      iconColor: const Color(0xFFDC2626),
-                      arrowColor: Colors.black,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SowgatlarMainPage()),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -127,6 +180,7 @@ class SelectionCard extends StatelessWidget {
   final IconData iconData;
   final Color iconColor;
   final Color arrowColor;
+  final bool isDark;
   final VoidCallback onTap;
 
   const SelectionCard({
@@ -138,6 +192,7 @@ class SelectionCard extends StatelessWidget {
     required this.iconData,
     required this.iconColor,
     required this.arrowColor,
+    required this.isDark,
     required this.onTap,
   });
 
@@ -150,10 +205,10 @@ class SelectionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+          border: Border.all(color: borderColor, width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -161,7 +216,7 @@ class SelectionCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Left icon placeholder (replaces the images in the mockup for now)
+            // Left icon placeholder
             Positioned(
               left: 24,
               top: 0,
@@ -170,8 +225,8 @@ class SelectionCard extends StatelessWidget {
                 child: Container(
                   width: 80,
                   height: 80,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF3F4F6),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF111827) : const Color(0xFFF3F4F6),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -186,25 +241,25 @@ class SelectionCard extends StatelessWidget {
             // Right content
             Positioned(
               left: 124,
-              top: 36,
+              top: 32,
               right: 24,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF1F2937),
+                      color: isDark ? Colors.white : const Color(0xFF1F2937),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: Color(0xFF4B5563),
+                      color: isDark ? Colors.grey[450] ?? Colors.grey[400] : const Color(0xFF4B5563),
                       height: 1.4,
                     ),
                   ),

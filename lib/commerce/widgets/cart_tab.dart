@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/cart_service.dart';
 import '../../services/orders_service.dart';
 import '../../config.dart';
+import '../../services/settings_service.dart';
 
 class CartTab extends StatefulWidget {
   final VoidCallback onContinueShopping;
@@ -30,6 +31,7 @@ class _CartTabState extends State<CartTab> {
 
   Future<void> _handleCheckout(CartService cart) async {
     if (!_formKey.currentState!.validate()) return;
+    final settings = SettingsService();
 
     setState(() => _isSubmitting = true);
     try {
@@ -51,14 +53,14 @@ class _CartTabState extends State<CartTab> {
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 28),
-              SizedBox(width: 12),
-              Text('Sargyt kabul edildi!', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Icon(Icons.check_circle, color: Colors.green, size: 28),
+              const SizedBox(width: 12),
+              Text(settings.translate('order_received_title'), style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
-          content: Text('Sargydyňyz üstünlikli kabul edildi! Sargyt belgisi: #$orderId.\nBiz ýakyn wagtda habarlaşarys.'),
+          content: Text('${settings.translate('order_received_body_prefix')}$orderId${settings.translate('order_received_body_suffix')}'),
           actions: [
             TextButton(
               onPressed: () {
@@ -71,7 +73,7 @@ class _CartTabState extends State<CartTab> {
                   _noteController.clear();
                 });
               },
-              child: const Text('Ýap', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold)),
+              child: Text(settings.translate('close_btn'), style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold)),
             )
           ],
         ),
@@ -80,7 +82,7 @@ class _CartTabState extends State<CartTab> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Ýalňyşlyk ýüze çykdy: $e'),
+          content: Text('${settings.translate('error_prefix')}$e'),
           backgroundColor: const Color(0xFFDC2626),
         ),
       );
@@ -94,33 +96,40 @@ class _CartTabState extends State<CartTab> {
     final cart = CartService();
 
     return ListenableBuilder(
-      listenable: cart,
+      listenable: SettingsService(),
       builder: (context, _) {
-        return Scaffold(
-          backgroundColor: const Color(0xFFF9FAFB),
-          appBar: AppBar(
-            title: Text(
-              _checkoutStep == 1 ? 'Sebedim' : 'Sargyt maglumatlary',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            leading: _checkoutStep == 2
-                ? IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-                    onPressed: () => setState(() => _checkoutStep = 1),
-                  )
-                : null,
-          ),
-          body: cart.items.isEmpty
-              ? _buildEmptyState()
-              : _checkoutStep == 1
-                  ? _buildCartStep(cart)
-                  : _buildInfoStep(cart),
+        final settings = SettingsService();
+        return ListenableBuilder(
+          listenable: cart,
+          builder: (context, _) {
+            return Scaffold(
+              backgroundColor: settings.isDarkMode ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+              appBar: AppBar(
+                title: Text(
+                  _checkoutStep == 1 ? settings.translate('my_cart') : settings.translate('order_info'),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                leading: _checkoutStep == 2
+                    ? IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                        onPressed: () => setState(() => _checkoutStep = 1),
+                      )
+                    : null,
+              ),
+              body: cart.items.isEmpty
+                  ? _buildEmptyState(settings)
+                  : _checkoutStep == 1
+                      ? _buildCartStep(cart, settings)
+                      : _buildInfoStep(cart, settings),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(SettingsService settings) {
+    final isDark = settings.isDarkMode;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -130,22 +139,22 @@ class _CartTabState extends State<CartTab> {
             Container(
               width: 90,
               height: 90,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFEE2E2),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF371C1C) : const Color(0xFFFEE2E2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.shopping_cart_outlined, size: 44, color: Color(0xFFDC2626)),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Sebediňiz boş',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF111827)),
+            Text(
+              settings.translate('cart_empty'),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: isDark ? Colors.white : const Color(0xFF111827)),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Entek hiç haryt goşmadyňyz. Häzir söwda edip başlaň!',
+            Text(
+              settings.translate('cart_empty_subtitle'),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+              style: TextStyle(fontSize: 14, color: isDark ? Colors.grey[400] : const Color(0xFF6B7280)),
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -159,7 +168,7 @@ class _CartTabState extends State<CartTab> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   elevation: 0,
                 ),
-                child: const Text('Söwda dowam et', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(settings.translate('continue_shopping_btn'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -168,7 +177,8 @@ class _CartTabState extends State<CartTab> {
     );
   }
 
-  Widget _buildCartStep(CartService cart) {
+  Widget _buildCartStep(CartService cart, SettingsService settings) {
+    final isDark = settings.isDarkMode;
     return Column(
       children: [
         Expanded(
@@ -192,12 +202,12 @@ class _CartTabState extends State<CartTab> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1F2937) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+                  border: Border.all(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB), width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -215,7 +225,7 @@ class _CartTabState extends State<CartTab> {
                         errorBuilder: (c, e, s) => Container(
                           width: 70,
                           height: 70,
-                          color: const Color(0xFFF3F4F6),
+                          color: isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
                           child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey),
                         ),
                       ),
@@ -229,7 +239,7 @@ class _CartTabState extends State<CartTab> {
                             prod['name'] ?? '',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF111827)),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF111827)),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -246,7 +256,7 @@ class _CartTabState extends State<CartTab> {
                                ),
                               Container(
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                                  border: Border.all(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
@@ -259,7 +269,7 @@ class _CartTabState extends State<CartTab> {
                                     ),
                                     Text(
                                       '${item['quantity']}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? Colors.white : Colors.black),
                                     ),
                                     IconButton(
                                       icon: const Icon(Icons.add, size: 14, color: Color(0xFFDC2626)),
@@ -290,12 +300,12 @@ class _CartTabState extends State<CartTab> {
         // Checkout Section
         Container(
           padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1F2937) : Colors.white,
             boxShadow: [
-              BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2)),
+              BoxShadow(color: Colors.black.withOpacity(isDark ? 0.3 : 0.1), blurRadius: 10, offset: const Offset(0, -2)),
             ],
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -303,15 +313,15 @@ class _CartTabState extends State<CartTab> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Jemi harytlar:', style: TextStyle(color: Color(0xFF6B7280))),
-                  Text('${cart.count} sany', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(settings.translate('total_items_label'), style: const TextStyle(color: Color(0xFF6B7280))),
+                  Text('${cart.count}${settings.translate('pcs')}', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
                 ],
               ),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Umumy baha:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF111827))),
+                  Text(settings.translate('total_price_label'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : const Color(0xFF111827))),
                   Text('${cart.total} ${Config.activeCurrencySymbol}', style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 20)),
                 ],
               ),
@@ -327,12 +337,12 @@ class _CartTabState extends State<CartTab> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Sargamak', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 18),
+                      Text(settings.translate('checkout_btn'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward, size: 18),
                     ],
                   ),
                 ),
@@ -341,7 +351,7 @@ class _CartTabState extends State<CartTab> {
               TextButton.icon(
                 onPressed: cart.clearCart,
                 icon: const Icon(Icons.delete_sweep_outlined, size: 18, color: Color(0xFF9CA3AF)),
-                label: const Text('SEBEDI ARASSALA', style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                label: Text(settings.translate('clear_cart'), style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
               ),
             ],
           ),
@@ -350,7 +360,8 @@ class _CartTabState extends State<CartTab> {
     );
   }
 
-  Widget _buildInfoStep(CartService cart) {
+  Widget _buildInfoStep(CartService cart, SettingsService settings) {
+    final isDark = settings.isDarkMode;
     return Column(
       children: [
         Expanded(
@@ -364,56 +375,60 @@ class _CartTabState extends State<CartTab> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEE2E2),
+                      color: isDark ? const Color(0xFF371C1C) : const Color(0xFFFEE2E2),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFFCA5A5)),
+                      border: Border.all(color: isDark ? const Color(0xFF5E2A2A) : const Color(0xFFFCA5A5)),
                     ),
-                    child: const Column(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Sargyt etmek üçin maglumatlar', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF991B1B), fontSize: 14)),
-                        SizedBox(height: 4),
-                        Text('Sargydyňyzy tassyklamak üçin maglumatlary dolduryň. Biz gysga wagtda habarlaşarys.', style: TextStyle(color: Color(0xFFB91C1C), fontSize: 12)),
+                        Text(settings.translate('order_details_title'), style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B), fontSize: 14)),
+                        const SizedBox(height: 4),
+                        Text(settings.translate('order_details_subtitle'), style: TextStyle(color: isDark ? Colors.grey[300] : const Color(0xFFB91C1C), fontSize: 12)),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
                   
                   // Name Field
-                  const Text('Doly adyňyz *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4B5563))),
+                  Text(settings.translate('full_name_label'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.grey[300] : const Color(0xFF4B5563))),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _nameController,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
-                      hintText: 'At-familiýaňyz',
+                      hintText: settings.translate('name_placeholder'),
+                      hintStyle: const TextStyle(color: Colors.grey),
                       prefixIcon: const Icon(Icons.person_outline, size: 20),
                       filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+                      fillColor: isDark ? const Color(0xFF1F2937) : Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB))),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFDC2626))),
                     ),
-                    validator: (value) => value!.isEmpty ? 'Adyňyzy ýazyň' : null,
+                    validator: (value) => value!.isEmpty ? settings.translate('write_name_error') : null,
                   ),
                   
                   const SizedBox(height: 20),
                   
                   // Phone Field
-                  const Text('Telefon belgiňiz *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4B5563))),
+                  Text(settings.translate('phone_label'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.grey[300] : const Color(0xFF4B5563))),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       hintText: '+993 6...',
+                      hintStyle: const TextStyle(color: Colors.grey),
                       prefixIcon: const Icon(Icons.phone_outlined, size: 20),
                       filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+                      fillColor: isDark ? const Color(0xFF1F2937) : Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB))),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFDC2626))),
                     ),
                     validator: (value) {
-                      if (value!.isEmpty) return 'Telefon belgiňizi ýazyň';
-                      if (!value.startsWith('+993')) return 'Telefon belgi +993 bilen başlamaly';
+                      if (value!.isEmpty) return settings.translate('write_phone_error');
+                      if (!value.startsWith('+993')) return settings.translate('phone_format_error');
                       return null;
                     },
                   ),
@@ -421,16 +436,18 @@ class _CartTabState extends State<CartTab> {
                   const SizedBox(height: 20),
                   
                   // Note Field
-                  const Text('Goşmaça bellik', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4B5563))),
+                  Text(settings.translate('note_label'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.grey[300] : const Color(0xFF4B5563))),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _noteController,
                     maxLines: 3,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
-                      hintText: 'Sargyt barada bellikleriňiz...',
+                      hintText: settings.translate('note_placeholder'),
+                      hintStyle: const TextStyle(color: Colors.grey),
                       filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
+                      fillColor: isDark ? const Color(0xFF1F2937) : Colors.white,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB))),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFDC2626))),
                     ),
                   ),
@@ -441,29 +458,29 @@ class _CartTabState extends State<CartTab> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1F2937) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                      border: Border.all(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Sargyt jemlemesi', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF9CA3AF), letterSpacing: 0.8)),
+                        Text(settings.translate('order_summary'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF9CA3AF), letterSpacing: 0.8)),
                         const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Haryt sany:', style: TextStyle(color: Color(0xFF6B7280))),
-                            Text('${cart.count} sany', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(settings.translate('product_count_label'), style: const TextStyle(color: Color(0xFF6B7280))),
+                            Text('${cart.count}${settings.translate('pcs')}', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        const Divider(color: Color(0xFFF3F4F6)),
+                        Divider(color: isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6)),
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Umumy baha:', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF111827))),
+                            Text(settings.translate('total_price_label'), style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF111827))),
                             Text('${cart.total} ${Config.activeCurrencySymbol}', style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 18)),
                           ],
                         ),
@@ -479,12 +496,12 @@ class _CartTabState extends State<CartTab> {
         // Checkout Action Button
         Container(
           padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1F2937) : Colors.white,
             boxShadow: [
-              BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2)),
+              BoxShadow(color: Colors.black.withOpacity(isDark ? 0.3 : 0.1), blurRadius: 10, offset: const Offset(0, -2)),
             ],
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: SizedBox(
             width: double.infinity,
@@ -504,12 +521,12 @@ class _CartTabState extends State<CartTab> {
                       height: 24,
                       child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                     )
-                  : const Row(
+                  : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Sargyt etmek', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        SizedBox(width: 8),
-                        Icon(Icons.shopping_cart_outlined, size: 18),
+                        Text(settings.translate('place_order_btn'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.shopping_cart_outlined, size: 18),
                       ],
                     ),
             ),

@@ -7,6 +7,9 @@ import '../widgets/top_bar.dart';
 import '../widgets/app_header.dart';
 import '../config.dart';
 
+import '../services/settings_service.dart';
+import '../services/cart_service.dart';
+
 class HarytlarMainPage extends StatefulWidget {
   final int initialTab;
 
@@ -18,6 +21,7 @@ class HarytlarMainPage extends StatefulWidget {
 
 class _HarytlarMainPageState extends State<HarytlarMainPage> {
   late int _currentIndex;
+  String? _selectedBrand;
 
   @override
   void initState() {
@@ -27,63 +31,122 @@ class _HarytlarMainPageState extends State<HarytlarMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> children = [
-      HarytHomeTab(onNavigateToCategories: () => setState(() => _currentIndex = 1)),
-      AllProductsPage(apiBaseUrl: Config.apiBaseUrl, isEmbedded: true),
-      CartTab(onContinueShopping: () => setState(() => _currentIndex = 0)),
-      const ProfilePage(),
-    ];
+    return ListenableBuilder(
+      listenable: Listenable.merge([SettingsService(), CartService()]),
+      builder: (context, _) {
+        final settings = SettingsService();
+        final cart = CartService();
+        final isDark = settings.isDarkMode;
+        final bgColor = isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB);
+        final navBgColor = isDark ? const Color(0xFF1F2937) : Colors.white;
+        final cartCount = cart.count;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Only show main headers for Home tab to keep embedded subpages clean
-            if (_currentIndex == 0) ...[
-              const TopBar(),
-              AppHeader(),
-            ],
-            Expanded(
-              child: IndexedStack(
-                index: _currentIndex,
-                children: children,
-              ),
+        final List<Widget> children = [
+          HarytHomeTab(onNavigateToCategories: (brand) {
+            setState(() {
+              _selectedBrand = brand;
+              _currentIndex = 1;
+            });
+          }),
+          AllProductsPage(
+            apiBaseUrl: Config.apiBaseUrl,
+            isEmbedded: true,
+            initialBrand: _selectedBrand,
+          ),
+          CartTab(onContinueShopping: () => setState(() {
+            _selectedBrand = null;
+            _currentIndex = 1;
+          })),
+          const ProfilePage(),
+        ];
+
+        return Scaffold(
+          backgroundColor: bgColor,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Only show main headers for Home tab to keep embedded subpages clean
+                if (_currentIndex == 0) ...[
+                  const TopBar(),
+                  AppHeader(),
+                ],
+                Expanded(
+                  child: IndexedStack(
+                    index: _currentIndex,
+                    children: children,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
+          ),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: navBgColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFFDC2626), // brand color
-          unselectedItemColor: const Color(0xFF9CA3AF),
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Baş sahypa'),
-            BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), activeIcon: Icon(Icons.grid_view_rounded), label: 'Kategoriýalar'),
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), activeIcon: Icon(Icons.shopping_cart_rounded), label: 'Sebet'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person_rounded), label: 'Profil'),
-          ],
-        ),
-      ),
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() {
+                _currentIndex = index;
+                _selectedBrand = null;
+              }),
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: navBgColor,
+              selectedItemColor: const Color(0xFFDC2626), // brand color
+              unselectedItemColor: isDark ? Colors.grey[500] : const Color(0xFF9CA3AF),
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              selectedFontSize: 12,
+              unselectedFontSize: 12,
+              elevation: 0,
+              items: [
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.home_outlined),
+                  activeIcon: const Icon(Icons.home_rounded),
+                  label: settings.translate('home_tab'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.grid_view_outlined),
+                  activeIcon: const Icon(Icons.grid_view_rounded),
+                  label: settings.translate('categories_tab'),
+                ),
+                BottomNavigationBarItem(
+                  icon: Badge(
+                    label: Text(
+                      '$cartCount',
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                    isLabelVisible: cartCount > 0,
+                    backgroundColor: const Color(0xFFDC2626),
+                    child: const Icon(Icons.shopping_cart_outlined),
+                  ),
+                  activeIcon: Badge(
+                    label: Text(
+                      '$cartCount',
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                    isLabelVisible: cartCount > 0,
+                    backgroundColor: const Color(0xFFDC2626),
+                    child: const Icon(Icons.shopping_cart_rounded),
+                  ),
+                  label: settings.translate('cart_tab'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.person_outline),
+                  activeIcon: const Icon(Icons.person_rounded),
+                  label: settings.translate('profile_tab'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

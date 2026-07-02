@@ -4,9 +4,10 @@ import '../../services/commerce_service.dart';
 import '../../services/cart_service.dart';
 import '../product_detail/product_detail_page.dart';
 import '../../config.dart';
+import '../../services/settings_service.dart';
 
 class HarytHomeTab extends StatefulWidget {
-  final VoidCallback onNavigateToCategories;
+  final Function(String? brand) onNavigateToCategories;
 
   const HarytHomeTab({super.key, required this.onNavigateToCategories});
 
@@ -106,37 +107,43 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFDC2626)));
-    }
+    return ListenableBuilder(
+      listenable: SettingsService(),
+      builder: (context, _) {
+        final settings = SettingsService();
+        if (isLoading) {
+          return const Center(child: CircularProgressIndicator(color: Color(0xFFDC2626)));
+        }
 
-    return RefreshIndicator(
-      onRefresh: _fetchHomeData,
-      color: const Color(0xFFDC2626),
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Hero Banner
-            if (banners.isNotEmpty) _buildHeroBanner(),
-            
-            // 2. Category Grid
-            _buildCategoryGrid(),
-            
-            // 3. Home Product Tabs
-            _buildHomeProductTabs(),
-            
-            // 4. Promo Section
-            if (promos.isNotEmpty) _buildPromoSection(),
-            
-            // 5. Brands Section
-            if (brands.isNotEmpty) _buildBrandsSection(),
-            
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
+        return RefreshIndicator(
+          onRefresh: _fetchHomeData,
+          color: const Color(0xFFDC2626),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Hero Banner
+                if (banners.isNotEmpty) _buildHeroBanner(),
+                
+                // 2. Category Grid
+                _buildCategoryGrid(settings),
+                
+                // 3. Home Product Tabs
+                _buildHomeProductTabs(settings),
+                
+                // 4. Promo Section
+                // if (promos.isNotEmpty) _buildPromoSection(),
+                
+                // 5. Brands Section
+                if (brands.isNotEmpty) _buildBrandsSection(settings),
+                
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -246,7 +253,7 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
     );
   }
 
-  Widget _buildCategoryGrid() {
+  Widget _buildCategoryGrid(SettingsService settings) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -255,17 +262,17 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Kategoriýalar',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF111827)),
+              Text(
+                settings.translate('categories'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF111827)),
               ),
               GestureDetector(
-                onTap: widget.onNavigateToCategories,
-                child: const Row(
+                onTap: () => widget.onNavigateToCategories(null),
+                child: Row(
                   children: [
-                    Text('Hemmesini gör', style: TextStyle(fontSize: 13, color: Color(0xFFDC2626), fontWeight: FontWeight.bold)),
-                    SizedBox(width: 2),
-                    Icon(Icons.chevron_right, size: 16, color: Color(0xFFDC2626)),
+                    Text(settings.translate('view_all'), style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626), fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 2),
+                    const Icon(Icons.chevron_right, size: 16, color: Color(0xFFDC2626)),
                   ],
                 ),
               ),
@@ -281,7 +288,7 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
             itemBuilder: (context, index) {
               final cat = categories[index];
               return GestureDetector(
-                onTap: widget.onNavigateToCategories,
+                onTap: () => widget.onNavigateToCategories(null),
                 child: Container(
                   width: 84,
                   margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -318,7 +325,7 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
     );
   }
 
-  Widget _buildHomeProductTabs() {
+  Widget _buildHomeProductTabs(SettingsService settings) {
     // Filter items based on active tab
     List<dynamic> filtered = [];
     if (selectedProductTab == 0) {
@@ -340,9 +347,9 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildTabButton(0, Icons.star_border_rounded, 'Saýlama Harytlar'),
+                _buildTabButton(0, Icons.star_border_rounded, settings.translate('featured_products')),
                 const SizedBox(width: 12),
-                _buildTabButton(1, Icons.local_offer_outlined, 'Arzanlaşykdaky'),
+                _buildTabButton(1, Icons.local_offer_outlined, settings.translate('on_sale')),
               ],
             ),
           ),
@@ -350,25 +357,15 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
         
         // Countdown timer for deals
         if (selectedProductTab == 1)
-          Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
-            child: Row(
-              children: [
-                const Text('Wagt galýar: ', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold, fontSize: 12)),
-                _buildTimerBox(_pad(hours)),
-                const Text(' : ', style: TextStyle(fontWeight: FontWeight.bold)),
-                _buildTimerBox(_pad(minutes)),
-                const Text(' : ', style: TextStyle(fontWeight: FontWeight.bold)),
-                _buildTimerBox(_pad(seconds)),
-              ],
-            ),
+          const Padding(
+            padding: EdgeInsets.only(left: 20, right: 20, bottom: 16),
           ),
 
         // Product Grid
         if (filtered.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
-            child: Center(child: Text('Haryt tapylmady', style: TextStyle(color: Colors.grey))),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: Text(settings.translate('no_products_found'), style: const TextStyle(color: Colors.grey))),
           )
         else
           GridView.builder(
@@ -384,7 +381,7 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
             itemCount: filtered.length,
             itemBuilder: (context, index) {
               final prod = filtered[index];
-              return _buildProductCard(prod);
+              return _buildProductCard(prod, settings);
             },
           ),
       ],
@@ -433,7 +430,7 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
     );
   }
 
-  Widget _buildProductCard(Map<String, dynamic> prod) {
+  Widget _buildProductCard(Map<String, dynamic> prod, SettingsService settings) {
     final inCart = CartService().items.any((item) => item['product']['id'].toString() == prod['id'].toString());
     String relativeUrl = '';
     if (prod['media'] != null && prod['media'] is List && prod['media'].isNotEmpty) {
@@ -519,19 +516,20 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF111827)),
                   ),
                   const SizedBox(height: 4),
-                  Row(
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         '${prod['price']} ${Config.activeCurrencySymbol}',
                         style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w900, fontSize: 14),
                       ),
-                      if (hasSale) ...[
-                        const SizedBox(width: 6),
+                      if (hasSale)
                         Text(
                           '${prod['original_price']} ${Config.activeCurrencySymbol}',
                           style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 11, decoration: TextDecoration.lineThrough),
                         ),
-                      ],
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -544,7 +542,7 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
                           CartService().removeFromCart(prod['id']);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('${prod['name']} sebetden aýryldy!'),
+                              content: Text('${prod['name']} ${settings.translate('cart_remove_snack')}'),
                               duration: const Duration(seconds: 1),
                             ),
                           );
@@ -552,7 +550,7 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
                           CartService().addToCart(prod);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('${prod['name']} sebede goşuldy!'),
+                              content: Text('${prod['name']} ${settings.translate('cart_add_snack')}'),
                               duration: const Duration(seconds: 1),
                             ),
                           );
@@ -564,7 +562,7 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
                         padding: EdgeInsets.zero,
                       ),
                       child: Text(
-                        inCart ? 'Aýyr' : 'Sebede goş',
+                        inCart ? settings.translate('remove_btn') : settings.translate('add_to_cart_btn'),
                         style: TextStyle(
                           color: inCart ? Colors.grey : const Color(0xFFDC2626),
                           fontSize: 11,
@@ -668,15 +666,15 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
     );
   }
 
-  Widget _buildBrandsSection() {
+  Widget _buildBrandsSection(SettingsService settings) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 20, right: 20, top: 24, bottom: 16),
+        Padding(
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 24, bottom: 16),
           child: Text(
-            'Esasy Brendler',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF111827)),
+            settings.translate('top_brands'),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF111827)),
           ),
         ),
         SizedBox(
@@ -692,18 +690,21 @@ class _HarytHomeTabState extends State<HarytHomeTab> {
                   ? logoRelative
                   : '${Config.mediaBaseUrl}${logoRelative.startsWith('/') ? '' : '/'}$logoRelative';
 
-              return Container(
-                width: 100,
-                margin: const EdgeInsets.symmetric(horizontal: 6),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFF3F4F6)),
+              return GestureDetector(
+                onTap: () => widget.onNavigateToCategories(brand['name']?.toString()),
+                child: Container(
+                  width: 100,
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFF3F4F6)),
+                  ),
+                  child: logoRelative.isNotEmpty
+                      ? Image.network(logoUrl, fit: BoxFit.contain, errorBuilder: (c, e, s) => Center(child: Text(brand['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10))))
+                      : Center(child: Text(brand['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10))),
                 ),
-                child: logoRelative.isNotEmpty
-                    ? Image.network(logoUrl, fit: BoxFit.contain, errorBuilder: (c, e, s) => Center(child: Text(brand['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10))))
-                    : Center(child: Text(brand['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10))),
               );
             },
           ),

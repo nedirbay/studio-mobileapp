@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/settings_service.dart';
 import 'login_page.dart';
+import '../admin/admin_dashboard_page.dart';
+import 'my_orders_page.dart';
+import 'news_list_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -27,7 +31,7 @@ class _ProfilePageState extends State<ProfilePage> {
     super.dispose();
   }
 
-  Future<void> _handleChangePassword() async {
+  Future<void> _handleChangePassword(SettingsService settings) async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -38,8 +42,8 @@ class _ProfilePageState extends State<ProfilePage> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Paroluňyz üstünlikli çalşyldy!'),
+        SnackBar(
+          content: Text(settings.translate('password_changed_success')),
           backgroundColor: Colors.green,
         ),
       );
@@ -61,68 +65,172 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: AuthService(),
-      builder: (context, _) {
-        final auth = AuthService();
-        final user = auth.user;
+    final settings = SettingsService();
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFF9FAFB),
-          appBar: AppBar(
-            title: const Text('Profil', style: TextStyle(fontWeight: FontWeight.bold)),
-            actions: [
-              if (auth.isAuthenticated)
-                IconButton(
-                  onPressed: () {
-                    auth.clearSession();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Ulgamdan çykyldy')),
-                    );
-                  },
-                  icon: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) {
+        final isDark = settings.isDarkMode;
+        return ListenableBuilder(
+          listenable: AuthService(),
+          builder: (context, _) {
+            final auth = AuthService();
+            final user = auth.user;
+            final bool isAdmin = auth.isAuthenticated &&
+                user != null &&
+                (user['role_name'] == 'Admin' || user['is_superuser'] == true);
+
+            return Scaffold(
+              backgroundColor: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+              appBar: AppBar(
+                backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
+                foregroundColor: isDark ? Colors.white : Colors.black,
+                elevation: 0,
+                title: Text(
+                  settings.translate('profile'),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-            ],
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: auth.isAuthenticated ? _buildProfileView(user!) : _buildGuestView(),
-          ),
+                actions: [
+                  if (auth.isAuthenticated)
+                    IconButton(
+                      onPressed: () {
+                        auth.clearSession();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(settings.translate('logout_snack')),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
+                    ),
+                ],
+              ),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (auth.isAuthenticated)
+                      _buildProfileHeader(user!, isDark, settings)
+                    else
+                      _buildGuestView(isDark, settings),
+                    const SizedBox(height: 24),
+                    _buildSettingsList(auth, settings, isDark, isAdmin),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildGuestView() {
-    return Center(
+  Widget _buildProfileHeader(Map<String, dynamic> user, bool isDark, SettingsService settings) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1F2937) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 40),
           Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
+            width: 85,
+            height: 85,
+            decoration: const BoxDecoration(
+              color: Color(0xFFDC2626),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.person_outline, size: 50, color: Colors.grey),
+            child: Center(
+              child: Text(
+                (user['username'] ?? 'U').toString().substring(0, 1).toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 24),
-          const Text(
-            'Hasabyňyza giriň',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+          const SizedBox(height: 16),
+          Text(
+            user['username'] ?? 'Ulanyjy',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : const Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            user['email'] ?? '',
+            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuestView(bool isDark, SettingsService settings) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1F2937) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF374151) : Colors.grey[100],
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.person_outline,
+              size: 40,
+              color: isDark ? Colors.grey[400] : Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            settings.translate('guest_title'),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF111827),
+            ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Sargytlaryňyzy yzarlamak we profil sazlamalaryňyzy üýtgetmek üçin giriň.',
+          Text(
+            settings.translate('guest_subtitle'),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280), height: 1.4),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
-            height: 56,
+            height: 50,
             child: ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -131,12 +239,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
+                backgroundColor: isDark ? Colors.white : Colors.black,
+                foregroundColor: isDark ? Colors.black : Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),
-              child: const Text('Giriş', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: Text(
+                settings.translate('login'),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
         ],
@@ -144,204 +255,295 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileView(Map<String, dynamic> user) {
+  Widget _buildSettingsList(AuthService auth, SettingsService settings, bool isDark, bool isAdmin) {
+    final tileColor = isDark ? const Color(0xFF1F2937) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6);
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // User Details Card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFF3F4F6), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        // --- NEWS TILE ---
+        _buildSettingsItem(
+          icon: Icons.newspaper_outlined,
+          iconColor: Colors.blue,
+          title: settings.translate('news'),
+          tileColor: tileColor,
+          borderColor: borderColor,
+          isDark: isDark,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NewsListPage()),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+
+        // --- MY ORDERS TILE (Only authenticated) ---
+        if (auth.isAuthenticated) ...[
+          _buildSettingsItem(
+            icon: Icons.shopping_bag_outlined,
+            iconColor: Colors.orange,
+            title: settings.translate('my_orders'),
+            tileColor: tileColor,
+            borderColor: borderColor,
+            isDark: isDark,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MyOrdersPage()),
+              );
+            },
           ),
-          child: Column(
+          const SizedBox(height: 12),
+        ],
+
+        // --- ADMIN DASHBOARD TILE (Only Admin) ---
+        if (isAdmin) ...[
+          _buildSettingsItem(
+            icon: Icons.admin_panel_settings_outlined,
+            iconColor: const Color(0xFFDC2626),
+            title: settings.translate('admin_panel'),
+            tileColor: tileColor,
+            borderColor: borderColor,
+            isDark: isDark,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // --- SECURITY (CHANGE PASSWORD) TILE (Only authenticated) ---
+        if (auth.isAuthenticated) ...[
+          Container(
+            decoration: BoxDecoration(
+              color: tileColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor, width: 1.5),
+            ),
+            child: Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.lock_outline, color: Colors.green, size: 22),
+                ),
+                title: Text(
+                  settings.translate('security'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                subtitle: Text(
+                  settings.translate('change_password'),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                children: [
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          settings.translate('old_password').toUpperCase(),
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF9CA3AF), letterSpacing: 0.8),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _oldPasswordController,
+                          obscureText: _obscureOld,
+                          decoration: InputDecoration(
+                            hintText: settings.translate('old_password_hint'),
+                            filled: true,
+                            fillColor: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+                            suffixIcon: IconButton(
+                              icon: Icon(_obscureOld ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
+                              onPressed: () => setState(() => _obscureOld = !_obscureOld),
+                            ),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                          validator: (value) => value!.isEmpty ? settings.translate('error_old_password') : null,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          settings.translate('new_password').toUpperCase(),
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF9CA3AF), letterSpacing: 0.8),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _newPasswordController,
+                          obscureText: _obscureNew,
+                          decoration: InputDecoration(
+                            hintText: settings.translate('new_password_hint'),
+                            filled: true,
+                            fillColor: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+                            suffixIcon: IconButton(
+                              icon: Icon(_obscureNew ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
+                              onPressed: () => setState(() => _obscureNew = !_obscureNew),
+                            ),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                          validator: (value) {
+                            if (value!.isEmpty) return settings.translate('error_new_password');
+                            if (value.length < 6) return settings.translate('error_new_password_len');
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          settings.translate('confirm_password').toUpperCase(),
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF9CA3AF), letterSpacing: 0.8),
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirm,
+                          decoration: InputDecoration(
+                            hintText: settings.translate('confirm_password_hint'),
+                            filled: true,
+                            fillColor: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
+                            suffixIcon: IconButton(
+                              icon: Icon(_obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
+                              onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                            ),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                          validator: (value) {
+                            if (value!.isEmpty) return settings.translate('error_confirm_password');
+                            if (value != _newPasswordController.text) return settings.translate('error_password_match');
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : () => _handleChangePassword(settings),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.grey[300],
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.check, size: 18),
+                                      const SizedBox(width: 8),
+                                      Text(settings.translate('save_password'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+
+
+        // --- LANGUAGE TILE ---
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: tileColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor, width: 1.5),
+          ),
+          child: Row(
             children: [
               Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFDC2626),
-                  shape: BoxShape.circle,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.purple.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Center(
-                  child: Icon(Icons.person, size: 40, color: Colors.white),
+                child: const Icon(Icons.translate, color: Colors.purple, size: 22),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  settings.translate('language'),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                user['username'] ?? 'Ulanyjy',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF111827)),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                user['email'] ?? '',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
-              ),
-              const SizedBox(height: 20),
-              const Divider(color: Color(0xFFF3F4F6)),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Hasap ID', style: TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w500)),
-                  Text('#${user['id'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF111827))),
+              DropdownButton<String>(
+                value: settings.languageCode,
+                underline: const SizedBox(),
+                dropdownColor: tileColor,
+                icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                items: const [
+                  DropdownMenuItem(value: 'TM', child: Text('TM', style: TextStyle(fontWeight: FontWeight.bold))),
+                  DropdownMenuItem(value: 'RU', child: Text('RU', style: TextStyle(fontWeight: FontWeight.bold))),
+                  DropdownMenuItem(value: 'EN', child: Text('EN', style: TextStyle(fontWeight: FontWeight.bold))),
                 ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Roly', style: TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w500)),
-                  Text(user['role_name'] ?? 'Ulanyjy', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF111827))),
-                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    settings.setLanguage(val);
+                  }
+                },
               ),
             ],
-          ),
-        ),
-        
-        const SizedBox(height: 32),
-        
-        // Security Form
-        const Text(
-          'Howpsuzlyk',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Paroluňyzy üýtgediň',
-          style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-        ),
-        const SizedBox(height: 16),
-        
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFF3F4F6), width: 1.5),
-          ),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Old Password
-                const Text('Köne parol', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF9CA3AF), letterSpacing: 0.8)),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _oldPasswordController,
-                  obscureText: _obscureOld,
-                  decoration: InputDecoration(
-                    hintText: 'Häzirki parolyňyz',
-                    filled: true,
-                    fillColor: const Color(0xFFF9FAFB),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscureOld ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
-                      onPressed: () => setState(() => _obscureOld = !_obscureOld),
-                    ),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  ),
-                  validator: (value) => value!.isEmpty ? 'Köne paroluňyzy giriziň' : null,
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // New Password
-                const Text('Täze parol', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF9CA3AF), letterSpacing: 0.8)),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _newPasswordController,
-                  obscureText: _obscureNew,
-                  decoration: InputDecoration(
-                    hintText: 'Minimal 6 simwol',
-                    filled: true,
-                    fillColor: const Color(0xFFF9FAFB),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscureNew ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
-                      onPressed: () => setState(() => _obscureNew = !_obscureNew),
-                    ),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  ),
-                  validator: (value) {
-                    if (value!.isEmpty) return 'Täze paroly giriziň';
-                    if (value.length < 6) return 'Parol azyndan 6 simwol bolmaly';
-                    return null;
-                  },
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Confirm Password
-                const Text('Täze paroly tassyklamak', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF9CA3AF), letterSpacing: 0.8)),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscureConfirm,
-                  decoration: InputDecoration(
-                    hintText: 'Paroly gaýtadan ýazyň',
-                    filled: true,
-                    fillColor: const Color(0xFFF9FAFB),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
-                      onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
-                    ),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  ),
-                  validator: (value) {
-                    if (value!.isEmpty) return 'Täze paroly tassyklamak hökman';
-                    if (value != _newPasswordController.text) return 'Parollar gabat gelmedi';
-                    return null;
-                  },
-                ),
-                
-                const SizedBox(height: 24),
-                
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleChangePassword,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey[300],
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.check, size: 18),
-                              SizedBox(width: 8),
-                              Text('Paroly sakla', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSettingsItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required Color tileColor,
+    required Color borderColor,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: tileColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor, width: 1.5),
+      ),
+      child: ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: iconColor, size: 22),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        onTap: onTap,
+      ),
     );
   }
 }

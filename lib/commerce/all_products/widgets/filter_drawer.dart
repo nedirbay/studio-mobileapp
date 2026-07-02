@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../services/settings_service.dart';
 
 class FilterDrawer extends StatelessWidget {
+  final SettingsService settings;
   final List<String> categories;
   final List<String> brands;
   final Set<String> selectedCategories;
@@ -23,6 +25,7 @@ class FilterDrawer extends StatelessWidget {
 
   const FilterDrawer({
     super.key,
+    required this.settings,
     required this.categories,
     required this.brands,
     required this.selectedCategories,
@@ -45,9 +48,16 @@ class FilterDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = settings.isDarkMode;
+    final bgColor = isDark ? const Color(0xFF111827) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF111827);
+    final fieldBg = isDark ? const Color(0xFF1F2937) : Colors.grey[100];
+    final unselectedChipBg = isDark ? const Color(0xFF1F2937) : Colors.grey[100]!;
+    final unselectedChipText = isDark ? Colors.grey[300]! : Colors.grey[600]!;
+
     return Drawer(
       width: MediaQuery.of(context).size.width * 0.85,
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       child: SafeArea(
         child: Column(
           children: [
@@ -57,10 +67,16 @@ class FilterDrawer extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Filterler', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+                  Text(
+                    settings.translate('filters'),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: textColor),
+                  ),
                   TextButton(
                     onPressed: onClear,
-                    child: const Text('Arassala', style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold)),
+                    child: Text(
+                      settings.translate('clear_filter'),
+                      style: const TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
@@ -71,35 +87,37 @@ class FilterDrawer extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 children: [
                   // Categories
-                  _buildSectionTitle('Kategoriýalar'),
+                  _buildSectionTitle(settings.translate('categories'), textColor),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: categories.map((cat) => _buildChip(cat, selectedCategories.contains(cat), () => onCategoryToggle(cat))).toList(),
+                    children: categories.map((cat) => _buildChip(cat, selectedCategories.contains(cat), () => onCategoryToggle(cat), unselectedChipBg, unselectedChipText)).toList(),
                   ),
                   const SizedBox(height: 24),
 
                   // Brands
-                  _buildSectionTitle('Brendler'),
+                  _buildSectionTitle(settings.translate('brands'), textColor),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: brands.map((brand) => _buildChip(brand, selectedBrands.contains(brand), () => onBrandToggle(brand))).toList(),
+                    children: brands.map((brand) => _buildChip(brand, selectedBrands.contains(brand), () => onBrandToggle(brand), unselectedChipBg, unselectedChipText)).toList(),
                   ),
                   const SizedBox(height: 24),
 
                   // Price Range
-                  _buildSectionTitle('Baha aralygy (TMT)'),
+                  _buildSectionTitle(settings.translate('price_range'), textColor),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: minPriceController,
                           keyboardType: TextInputType.number,
+                          style: TextStyle(color: textColor),
                           decoration: InputDecoration(
                             hintText: 'Min',
+                            hintStyle: const TextStyle(color: Colors.grey),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: fieldBg,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           ),
@@ -109,18 +127,20 @@ class FilterDrawer extends StatelessWidget {
                           },
                         ),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('-'),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text('-', style: TextStyle(color: textColor)),
                       ),
                       Expanded(
                         child: TextField(
                           controller: maxPriceController,
                           keyboardType: TextInputType.number,
+                          style: TextStyle(color: textColor),
                           decoration: InputDecoration(
                             hintText: 'Max',
+                            hintStyle: const TextStyle(color: Colors.grey),
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: fieldBg,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           ),
@@ -135,16 +155,16 @@ class FilterDrawer extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Ratings
-                  _buildSectionTitle('Reýting'),
+                  _buildSectionTitle(settings.translate('rating'), textColor),
                   Wrap(
                     spacing: 8,
-                    children: [5, 4, 3, 2, 1].map((star) => _buildRatingChip(star)).toList(),
+                    children: [5, 4, 3, 2, 1].map((star) => _buildRatingChip(star, unselectedChipBg, unselectedChipText)).toList(),
                   ),
                   const SizedBox(height: 24),
 
                   // Toggles
-                  _buildToggleRow('Diňe ammarda bar', inStockOnly, onStockToggle),
-                  _buildToggleRow('Arzanlaşykdaky harytlar', onSaleOnly, onSaleToggle),
+                  _buildToggleRow(settings.translate('only_in_stock'), inStockOnly, onStockToggle, textColor),
+                  _buildToggleRow(settings.translate('on_sale_products'), onSaleOnly, onSaleToggle, textColor),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -167,7 +187,7 @@ class FilterDrawer extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
                   ),
-                  child: const Text('Gözle', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text(settings.translate('search_btn'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ),
@@ -177,44 +197,44 @@ class FilterDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, Color textColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF111827))),
+      child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
     );
   }
 
-  Widget _buildChip(String label, bool isSelected, VoidCallback onTap) {
+  Widget _buildChip(String label, bool isSelected, VoidCallback onTap, Color unselectedBg, Color unselectedText) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFDC2626) : Colors.grey[100],
+          color: isSelected ? const Color(0xFFDC2626) : unselectedBg,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Text(
           label,
-          style: TextStyle(color: isSelected ? Colors.white : Colors.grey[600], fontSize: 13, fontWeight: FontWeight.w600),
+          style: TextStyle(color: isSelected ? Colors.white : unselectedText, fontSize: 13, fontWeight: FontWeight.w600),
         ),
       ),
     );
   }
 
-  Widget _buildRatingChip(int star) {
+  Widget _buildRatingChip(int star, Color unselectedBg, Color unselectedText) {
     bool isSelected = selectedRatings.contains(star);
     return GestureDetector(
       onTap: () => onRatingToggle(star),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFDC2626) : Colors.grey[100],
+          color: isSelected ? const Color(0xFFDC2626) : unselectedBg,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('$star', style: TextStyle(color: isSelected ? Colors.white : Colors.grey[600], fontWeight: FontWeight.bold)),
+            Text('$star', style: TextStyle(color: isSelected ? Colors.white : unselectedText, fontWeight: FontWeight.bold)),
             const SizedBox(width: 4),
             Icon(Icons.star_rounded, size: 16, color: isSelected ? Colors.white : Colors.amber),
           ],
@@ -223,11 +243,11 @@ class FilterDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildToggleRow(String title, bool value, Function(bool) onChanged) {
+  Widget _buildToggleRow(String title, bool value, Function(bool) onChanged, Color textColor) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+        Text(title, style: TextStyle(fontWeight: FontWeight.w500, color: textColor)),
         Switch(
           value: value,
           onChanged: onChanged,

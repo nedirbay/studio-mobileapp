@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:studioapp/models/studio_media.dart';
+import 'package:doganlarfoto/models/studio_media.dart';
 
 void main() {
   group('StudioMedia.fromVideoJson', () {
