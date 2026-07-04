@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'config.dart';
 import 'selection_page.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -53,19 +56,127 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
 
     _controller.forward();
+    _initApp();
+  }
 
-    // Fade out and navigate to home after 2 seconds
-    Timer(const Duration(milliseconds: 2000), () {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const SelectionPage(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
+  Future<bool> _checkConnectionOnly() async {
+    try {
+      final response = await http.get(Uri.parse('${Config.apiBaseUrl}/currencies/active'))
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        if (data != null && data['symbol'] != null) {
+          Config.activeCurrencySymbol = data['symbol'].toString();
+        }
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Connection check failed: $e');
+      return false;
+    }
+  }
+
+  Future<void> _initApp() async {
+    final startTime = DateTime.now();
+    final hasConnection = await _checkConnectionOnly();
+
+    if (!hasConnection) {
+      if (mounted) {
+        _showNoInternetDialog();
+      }
+      return;
+    }
+
+    final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+    final remaining = 2000 - elapsed;
+    if (remaining > 0) {
+      await Future.delayed(Duration(milliseconds: remaining));
+    }
+
+    if (mounted) {
+      _navigateToHome();
+    }
+  }
+
+  void _navigateToHome() {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const SelectionPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
+  void _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        bool isRetrying = false;
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.wifi_off, color: Color(0xFFDC2626)),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Internet baglanyşygy ýok',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ],
+              ),
+              content: Text(
+                isRetrying
+                    ? 'Baglanyşyk barlanýar, garaşyň...'
+                    : 'Programmanyň işlemegi üçin internet gerek. Baglanyşygyňyzy barlaň we täzeden synanyşyň.',
+                style: const TextStyle(fontSize: 15),
+              ),
+              actions: [
+                if (!isRetrying)
+                  TextButton(
+                    onPressed: () async {
+                      setStateDialog(() {
+                        isRetrying = true;
+                      });
+                      
+                      final success = await _checkConnectionOnly();
+                      
+                      if (success) {
+                        Navigator.of(context).pop();
+                        _navigateToHome();
+                      } else {
+                        setStateDialog(() {
+                          isRetrying = false;
+                        });
+                      }
+                    },
+                    child: const Text(
+                      'Täzeden synanyş',
+                      style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold),
+                    ),
+                  )
+                else
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFDC2626)),
+                      ),
+                    ),
+                  ),
+              ],
+            );
           },
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   @override

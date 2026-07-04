@@ -5,6 +5,7 @@ import 'login_page.dart';
 import '../admin/admin_dashboard_page.dart';
 import 'my_orders_page.dart';
 import 'news_list_page.dart';
+import 'about_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -507,6 +508,21 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 12),
+        _buildSettingsItem(
+          icon: Icons.info_outline_rounded,
+          iconColor: const Color(0xFFDC2626),
+          title: settings.translate('about_us'),
+          tileColor: tileColor,
+          borderColor: borderColor,
+          isDark: isDark,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AboutPage()),
+            );
+          },
         ),
       ],
     );

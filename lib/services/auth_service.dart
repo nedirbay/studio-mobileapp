@@ -70,7 +70,12 @@ class AuthService extends ChangeNotifier {
       }),
     );
     if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('Giriş şowsuz boldy');
+      String message = 'Giriş şowsuz boldy';
+      try {
+        final body = json.decode(utf8.decode(res.bodyBytes));
+        message = _parseError(body, message);
+      } catch (_) {}
+      throw Exception(message);
     }
     final body = json.decode(utf8.decode(res.bodyBytes));
     if (body['jwt'] != null && body['user'] != null) {
@@ -90,7 +95,12 @@ class AuthService extends ChangeNotifier {
       }),
     );
     if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('Agza bolmak şowsuz boldy');
+      String message = 'Agza bolmak şowsuz boldy';
+      try {
+        final body = json.decode(utf8.decode(res.bodyBytes));
+        message = _parseError(body, message);
+      } catch (_) {}
+      throw Exception(message);
     }
     return Map<String, dynamic>.from(json.decode(utf8.decode(res.bodyBytes)) as Map);
   }
@@ -108,9 +118,7 @@ class AuthService extends ChangeNotifier {
       String message = 'Kod nädogry ýa-da möwriti öten';
       try {
         final body = json.decode(utf8.decode(res.bodyBytes));
-        if (body is Map && body['error'] != null) {
-          message = body['error'].toString();
-        }
+        message = _parseError(body, message);
       } catch (_) {}
       throw Exception(message);
     }
@@ -133,9 +141,7 @@ class AuthService extends ChangeNotifier {
       String message = 'Kod ugratmak başartmady';
       try {
         final body = json.decode(utf8.decode(res.bodyBytes));
-        if (body is Map && body['error'] != null) {
-          message = body['error'].toString();
-        }
+        message = _parseError(body, message);
       } catch (_) {}
       throw Exception(message);
     }
@@ -158,9 +164,84 @@ class AuthService extends ChangeNotifier {
       String message = 'Paroly çalşyp bolmady';
       try {
         final body = json.decode(utf8.decode(res.bodyBytes));
-        if (body is Map && body['detail'] != null) message = body['detail'].toString();
+        message = _parseError(body, message);
       } catch (_) {}
       throw Exception(message);
     }
+  }
+
+  String _parseError(dynamic body, String defaultMessage) {
+    if (body is Map) {
+      if (body['error'] != null) {
+        return _translateError(body['error'].toString());
+      }
+      if (body['detail'] != null) {
+        return _translateError(body['detail'].toString());
+      }
+      if (body['message'] != null) {
+        return _translateError(body['message'].toString());
+      }
+      
+      // If it's field validation errors (e.g. {"username": ["..."]})
+      List<String> errors = [];
+      body.forEach((key, value) {
+        if (value is List) {
+          for (var item in value) {
+            errors.add(_translateError(item.toString(), field: key.toString()));
+          }
+        } else if (value is Map) {
+          value.forEach((k, v) {
+            errors.add(_translateError(v.toString(), field: '$key.$k'));
+          });
+        } else {
+          errors.add(_translateError(value.toString(), field: key.toString()));
+        }
+      });
+      if (errors.isNotEmpty) {
+        return errors.join('\n');
+      }
+    }
+    return defaultMessage;
+  }
+
+  String _translateError(String error, {String? field}) {
+    final lower = error.toLowerCase();
+    String translated = error;
+    
+    if (lower.contains('username already exists') || 
+        lower.contains('ulanyjy ady eýýäm bar') || 
+        lower.contains('hasaba alnan')) {
+      translated = 'Bu ulanyjy ady eýýäm hasaba alnan';
+    } else if (lower.contains('email already exists') || 
+               lower.contains('email with this') || 
+               lower.contains('e-poçta eýýäm hasaba alnan')) {
+      translated = 'Bu e-poçta salgysy eýýäm hasaba alnan';
+    } else if (lower.contains('may not be blank') || 
+               lower.contains('boş bolmaly däl')) {
+      translated = 'Bu meýdança boş bolmaly däl';
+    } else if (lower.contains('invalid password') || 
+               lower.contains('parol nädogry')) {
+      translated = 'Parol nädogry';
+    } else if (lower.contains('user not found') || 
+               lower.contains('ulanyjy tapylmady')) {
+      translated = 'Ulanyjy tapylmady';
+    } else if (lower.contains('invalid credentials') || 
+               lower.contains('credentials do not match') ||
+               lower.contains('ulanyjy ady ýa-da parol nädogry')) {
+      translated = 'Ulanyjy ady ýa-da parol nädogry';
+    }
+    
+    if (field != null) {
+      String fieldName = field;
+      if (field == 'username') {
+        fieldName = 'Ulanyjy ady';
+      } else if (field == 'email') {
+        fieldName = 'E-poçta';
+      } else if (field == 'password') {
+        fieldName = 'Parol';
+      }
+      return '$fieldName: $translated';
+    }
+    return translated;
   }
 }

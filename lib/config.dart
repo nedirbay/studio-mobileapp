@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
+
 class Config {
   // For Gemymotion use 10.0.3.2, for real device use your LAN IP via --dart-define.
   static String backendHost = const String.fromEnvironment(
     'BACKEND_HOST',
-    defaultValue: '10.0.3.2:8000',
+    defaultValue: kReleaseMode ? 'doganlarfoto.com' : '10.0.3.2:8000',
   );
 
   // Use HTTPS for production domains, HTTP for local development (Genymotion, emulator, LAN)

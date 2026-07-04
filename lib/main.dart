@@ -28,7 +28,6 @@ void main() async {
   final settings = SettingsService();
   await settings.init();
   SyncService.checkForUpdates();
-  await fetchActiveCurrency();
   runApp(const MyApp());
 }
 
