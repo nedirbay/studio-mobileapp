@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'selection_page.dart';
+import 'main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -58,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     Timer(const Duration(milliseconds: 2000), () {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const SelectionPage(),
+          pageBuilder: (context, animation, secondaryAnimation) => const AdminAuthWrapper(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -66,6 +66,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         ),
       );
     });
+
   }
 
   @override

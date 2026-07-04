@@ -172,7 +172,7 @@ class _AdminCurrenciesPageState extends State<AdminCurrenciesPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: const Text('Walýutalar', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Pul birlikleri', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadCurrencies),
         ],

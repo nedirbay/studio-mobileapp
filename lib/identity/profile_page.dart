@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
 import 'login_page.dart';
-import '../admin/admin_dashboard_page.dart';
-import 'my_orders_page.dart';
-import 'news_list_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -261,62 +258,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Column(
       children: [
-        // --- NEWS TILE ---
-        _buildSettingsItem(
-          icon: Icons.newspaper_outlined,
-          iconColor: Colors.blue,
-          title: settings.translate('news'),
-          tileColor: tileColor,
-          borderColor: borderColor,
-          isDark: isDark,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const NewsListPage()),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-
-        // --- MY ORDERS TILE (Only authenticated) ---
-        if (auth.isAuthenticated) ...[
-          _buildSettingsItem(
-            icon: Icons.shopping_bag_outlined,
-            iconColor: Colors.orange,
-            title: settings.translate('my_orders'),
-            tileColor: tileColor,
-            borderColor: borderColor,
-            isDark: isDark,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MyOrdersPage()),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-        ],
-
-        // --- ADMIN DASHBOARD TILE (Only Admin) ---
-        if (isAdmin) ...[
-          _buildSettingsItem(
-            icon: Icons.admin_panel_settings_outlined,
-            iconColor: const Color(0xFFDC2626),
-            title: settings.translate('admin_panel'),
-            tileColor: tileColor,
-            borderColor: borderColor,
-            isDark: isDark,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-        ],
-
         // --- SECURITY (CHANGE PASSWORD) TILE (Only authenticated) ---
+
         if (auth.isAuthenticated) ...[
           Container(
             decoration: BoxDecoration(
@@ -511,39 +454,5 @@ class _ProfilePageState extends State<ProfilePage> {
       ],
     );
   }
-
-  Widget _buildSettingsItem({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required Color tileColor,
-    required Color borderColor,
-    required bool isDark,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: tileColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor, width: 1.5),
-      ),
-      child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: iconColor, size: 22),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-        onTap: onTap,
-      ),
-    );
-  }
 }
+

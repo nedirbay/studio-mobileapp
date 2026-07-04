@@ -433,7 +433,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           const AdminMessagesPage(),
         ),
         _buildNavCard(
-          'Walýutalar',
+          'Pul birlikleri',
           Icons.attach_money_rounded,
           Colors.orangeAccent,
           const AdminCurrenciesPage(),

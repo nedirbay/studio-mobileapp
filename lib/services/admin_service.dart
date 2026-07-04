@@ -662,7 +662,7 @@ class AdminService {
       Uri.parse('${Config.apiBaseUrl}/currencies'),
       headers: _headers(),
     );
-    final data = _decode(res, 'Walýutalary ýüklemek');
+    final data = _decode(res, 'Pul birlikleri ýüklemek');
     if (data is List) return data;
     return [];
   }
@@ -747,4 +747,36 @@ class AdminService {
     );
     _decode(res, 'Wersiýa pozmak');
   }
+
+  // --- System Logs ---
+  static Future<List<dynamic>> listLogs() async {
+    final res = await client.get(
+      Uri.parse('${Config.apiBaseUrl}/admin/logs'),
+      headers: _headers(),
+    );
+    final data = _decode(res, 'Sistem loglary ýüklemek');
+    if (data is List) return data;
+    return [];
+  }
+
+  static Future<void> deleteLogs(Map<String, dynamic> payload) async {
+    final res = await client.delete(
+      Uri.parse('${Config.apiBaseUrl}/admin/logs'),
+      headers: _headers(),
+      body: json.encode(payload),
+    );
+    _decode(res, 'Sistem loglary pozmak');
+  }
+
+  static Future<String> exportLogsCSV() async {
+    final res = await client.get(
+      Uri.parse('${Config.apiBaseUrl}/admin/logs?export=csv'),
+      headers: _headers(),
+    );
+    if (res.statusCode < 200 || res.statusCode >= 300) {
+      throw Exception('CSV eksport etmek şowsuz boldy (Status: ${res.statusCode})');
+    }
+    return utf8.decode(res.bodyBytes);
+  }
 }
+

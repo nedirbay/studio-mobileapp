@@ -78,4 +78,45 @@ void main() {
     expect(captured?.path, endsWith('/commerce/messages'));
     expect(msgs.single['subject'], 'Inquiry');
   });
+
+  test('listLogs hits /admin/logs', () async {
+    Uri? captured;
+    AdminService.client = MockClient((req) async {
+      captured = req.url;
+      return http.Response(json.encode([{'level': 'INFO', 'timestamp': '2026-07-04', 'path': '/api/test'}]), 200);
+    });
+
+    final logs = await AdminService.listLogs();
+    expect(captured?.path, endsWith('/admin/logs'));
+    expect(logs.single['path'], '/api/test');
+  });
+
+  test('deleteLogs hits /admin/logs with DELETE', () async {
+    Uri? captured;
+    Map<String, dynamic>? body;
+    AdminService.client = MockClient((req) async {
+      captured = req.url;
+      expect(req.method, 'DELETE');
+      body = json.decode(req.body);
+      return http.Response('', 204);
+    });
+
+    await AdminService.deleteLogs({'action': 'delete_all'});
+    expect(captured?.path, endsWith('/admin/logs'));
+    expect(body?['action'], 'delete_all');
+  });
+
+  test('exportLogsCSV hits /admin/logs?export=csv', () async {
+    Uri? captured;
+    AdminService.client = MockClient((req) async {
+      captured = req.url;
+      return http.Response('level,timestamp,user\nINFO,2026-07-04,admin', 200);
+    });
+
+    final csv = await AdminService.exportLogsCSV();
+    expect(captured?.path, endsWith('/admin/logs'));
+    expect(captured?.query, 'export=csv');
+    expect(csv, startsWith('level,timestamp,user'));
+  });
 }
+

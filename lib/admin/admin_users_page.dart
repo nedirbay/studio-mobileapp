@@ -15,8 +15,6 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   String _selectedRole = '';
   String? _error;
 
-  final List<String> _roles = ['', 'Admin', 'Customer', 'Staff'];
-
   @override
   void initState() {
     super.initState();
@@ -102,14 +100,14 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                       controller: emailController,
                       decoration: const InputDecoration(labelText: 'Email salgysy'),
                     ),
-                    if (!isEdit) ...[
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: passController,
-                        obscureText: true,
-                        decoration: const InputDecoration(labelText: 'Paroly'),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: passController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: isEdit ? 'Täze paroly (üýtgetmek üçin ýazyň)' : 'Paroly',
                       ),
-                    ],
+                    ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       value: role,
@@ -159,9 +157,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     final payload = {
                       'username': nameController.text,
                       'email': emailController.text,
-                      'role_name': role,
+                      'role_input': role,
                       'is_active': isActive,
-                      if (!isEdit) 'password': passController.text,
+                      if (!isEdit || passController.text.isNotEmpty) 'password': passController.text,
                     };
 
                     try {

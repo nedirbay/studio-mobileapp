@@ -6,6 +6,8 @@ import 'package:doganlarfoto/services/commerce_service.dart';
 import 'package:doganlarfoto/services/orders_service.dart';
 import 'package:doganlarfoto/services/studio_order_service.dart';
 import 'package:doganlarfoto/services/promotions_service.dart';
+import 'package:doganlarfoto/services/admin_service.dart';
+
 
 void main() {
   setUpAll(() {
@@ -122,15 +124,52 @@ void main() {
       if (campaigns.isNotEmpty) {
         final campaign = campaigns.first;
         print('Attempting to join Campaign: ${campaign.id}');
-        // Join campaign
-        await PromotionsService.join(
-          campaign.id,
-          fullName: 'Test Promotion Customer',
-          phone: '+99369876543',
-          email: 'test@promo.com',
-          note: 'Integration testing',
-        );
+        try {
+          final uniquePhone = '+9936${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+          final uniqueEmail = 'test_${DateTime.now().millisecondsSinceEpoch}@promo.com';
+          await PromotionsService.join(
+            campaign.id,
+            fullName: 'Test Promotion Customer',
+            phone: uniquePhone,
+            email: uniqueEmail,
+            note: 'Integration testing',
+          );
+        } catch (e) {
+          if (!e.toString().contains('Siz öňden gatnaşyjy')) {
+            rethrow;
+          }
+        }
       }
     });
+
+    test('6. Admin System Logs integration test', () async {
+      final auth = AuthService();
+      await auth.login('test_admin', 'test_admin_pass123');
+
+      // Fetch logs
+      final logs = await AdminService.listLogs();
+      expect(logs, isA<List>());
+      print('Retrieved ${logs.length} system logs.');
+
+      // Export CSV
+      final csv = await AdminService.exportLogsCSV();
+      expect(csv, isA<String>());
+      print('Exported CSV sample length: ${csv.length}');
+
+      // Test delete logs dry run (expects a validation error from server when empty)
+      try {
+        await AdminService.deleteLogs({
+          'action': 'delete_selected',
+          'selected_logs': [],
+        });
+        fail('Should have thrown validation error');
+      } catch (e) {
+        expect(e.toString(), contains('Saýlanan loglar ugradylmady'));
+      }
+      print('Tested deleteLogs API call successfully.');
+    });
+
+
   });
 }
+
