@@ -15,7 +15,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   String _selectedStatus = 'All';
   String? _error;
 
-  final List<String> _statuses = ['All', 'pending', 'approved', 'shipping', 'completed', 'cancelled'];
+  final List<String> _statuses = ['All', 'pending', 'completed', 'cancelled'];
 
   @override
   void initState() {
@@ -55,10 +55,6 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     switch (status.toLowerCase()) {
       case 'pending':
         return 'Garaşylýar';
-      case 'approved':
-        return 'Tassyklandy';
-      case 'shipping':
-        return 'Ýolda';
       case 'completed':
         return 'Tamamlandy';
       case 'cancelled':
@@ -71,11 +67,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
-        return Colors.orange;
-      case 'approved':
-        return Colors.blue;
-      case 'shipping':
-        return Colors.indigo;
+        return Colors.orange;    
       case 'completed':
         return Colors.green;
       case 'cancelled':
@@ -235,15 +227,16 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                         separatorBuilder: (_, __) => const Divider(),
                         itemBuilder: (context, idx) {
                           final item = items[idx];
-                          final product = item['product_details'] ?? item['product'] ?? {};
-                          final String pName = product['name'] ?? 'Haryt';
+                          // product may be an int (ID) or a Map — use product_name directly
+                          final String pName = item['product_name']?.toString()
+                              ?? (item['product'] is Map ? (item['product']['name'] ?? 'Haryt') : 'Haryt');
                           final int qty = item['quantity'] ?? 1;
-                          final double price = double.tryParse(item['price']?.toString() ?? product['price']?.toString() ?? '0') ?? 0.0;
+                          final double price = double.tryParse(item['price']?.toString() ?? '0') ?? 0.0;
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
                             title: Text(pName, style: const TextStyle(fontWeight: FontWeight.bold)),
                             subtitle: Text('$qty sany x $price TMT'),
-                            trailing: Text('${qty * price} TMT', style: const TextStyle(fontWeight: FontWeight.w900)),
+                            trailing: Text('${(qty * price).toStringAsFixed(2)} TMT', style: const TextStyle(fontWeight: FontWeight.w900)),
                           );
                         },
                       ),
@@ -324,7 +317,12 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                     : _filteredOrders.isEmpty
                         ? const Center(child: Text('Sargyt tapylmady'))
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 8,
+                              bottom: MediaQuery.of(context).padding.bottom + 16,
+                            ),
                             itemCount: _filteredOrders.length,
                             itemBuilder: (context, index) {
                               final order = _filteredOrders[index];

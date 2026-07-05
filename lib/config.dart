@@ -13,6 +13,8 @@ class Config {
 
   static String get apiBaseUrl => '$_scheme://$backendHost/api';
   static String get mediaBaseUrl => '$_scheme://$backendHost';
+  static String get _wsScheme => _scheme == 'https' ? 'wss' : 'ws';
+  static String get wsBaseUrl => '$_wsScheme://$backendHost';
 
   static String activeCurrencySymbol = 'TMT';
 }

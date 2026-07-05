@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../services/admin_service.dart';
+import '../services/admin_ws_service.dart';
 
 class AdminMessagesPage extends StatefulWidget {
   const AdminMessagesPage({super.key});
@@ -13,10 +15,48 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
   List<dynamic> _messages = [];
   String? _error;
 
+  StreamSubscription? _wsSubscription;
+
   @override
   void initState() {
     super.initState();
     _loadMessages();
+    _wsSubscription = AdminWsService.instance.stream.listen((event) {
+      if (event.type == AdminWsEventType.messageCreated) {
+        final message = event.data['message'];
+        if (message != null) {
+          final int id = message['id'] ?? 0;
+          final bool exists = _messages.any((m) => m['id'] == id);
+          if (!exists) {
+            setState(() {
+              _messages.insert(0, message);
+            });
+          }
+        }
+      } else if (event.type == AdminWsEventType.messageUpdated) {
+        final message = event.data['message'];
+        if (message != null) {
+          final int id = message['id'] ?? 0;
+          final idx = _messages.indexWhere((m) => m['id'] == id);
+          if (idx != -1) {
+            setState(() {
+              _messages[idx] = message;
+            });
+          }
+        }
+      } else if (event.type == AdminWsEventType.messageDeleted) {
+        final int id = event.data['message_id'] ?? 0;
+        setState(() {
+          _messages.removeWhere((m) => m['id'] == id);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _wsSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadMessages() async {
@@ -148,7 +188,12 @@ class _AdminMessagesPageState extends State<AdminMessagesPage> {
               : _messages.isEmpty
                   ? const Center(child: Text('Hat tapylmady'))
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: MediaQuery.of(context).padding.bottom + 16,
+                      ),
                       itemCount: _messages.length,
                       itemBuilder: (context, index) {
                         final msg = _messages[index];

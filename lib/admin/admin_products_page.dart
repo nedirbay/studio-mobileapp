@@ -329,7 +329,12 @@ class _AdminProductsPageState extends State<AdminProductsPage> {
                     : _filteredProducts.isEmpty
                         ? const Center(child: Text('Haryt tapylmady'))
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 8,
+                              bottom: MediaQuery.of(context).padding.bottom + 82,
+                            ),
                             itemCount: _filteredProducts.length,
                             itemBuilder: (context, index) {
                               final product = _filteredProducts[index];

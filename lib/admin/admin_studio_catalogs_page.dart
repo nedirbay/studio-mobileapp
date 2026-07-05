@@ -44,8 +44,31 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
     }
   }
 
+  Future<bool> _confirmDelete(String name) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Öçürmek isleýäñizmi?'),
+        content: Text('"$name" öçüriler. Bu amaly yzyna gaýtaryp bolmaz.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Ýatyr'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Öçür'),
+          ),
+        ],
+      ),
+    );
+    return result == true;
+  }
+
   // --- CRUD Services ---
-  Future<void> _deleteService(int id) async {
+  Future<void> _deleteService(int id, String name) async {
+    if (!await _confirmDelete(name)) return;
     try {
       await AdminService.deleteStudioService(id);
       _loadAllCatalogs();
@@ -57,30 +80,20 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
   void _showServiceEditor([dynamic svc]) {
     final bool isEdit = svc != null;
     final nameController = TextEditingController(text: isEdit ? svc['name'] ?? '' : '');
-    final descController = TextEditingController(text: isEdit ? svc['description'] ?? '' : '');
-    final priceController = TextEditingController(text: isEdit ? (svc['daily_price'] ?? '').toString() : '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(isEdit ? 'Hyzmaty üýtgetmek' : 'Täze hyzmat goşmak'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Ady')),
-            TextField(controller: descController, decoration: const InputDecoration(labelText: 'Düşündiriş')),
-            TextField(controller: priceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Gündelik bahasy (TMT)')),
-          ],
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(labelText: 'Ady'),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Ýatyr')),
           TextButton(
             onPressed: () async {
-              final payload = {
-                'name': nameController.text,
-                'description': descController.text,
-                'daily_price': double.tryParse(priceController.text) ?? 0.0,
-              };
+              final payload = {'name': nameController.text};
               try {
                 if (isEdit) {
                   await AdminService.updateStudioService(svc['id'], payload);
@@ -101,7 +114,8 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
   }
 
   // --- CRUD Equipments ---
-  Future<void> _deleteEquipment(int id) async {
+  Future<void> _deleteEquipment(int id, String name) async {
+    if (!await _confirmDelete(name)) return;
     try {
       await AdminService.deleteStudioEquipment(id);
       _loadAllCatalogs();
@@ -157,7 +171,8 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
   }
 
   // --- CRUD Order Types ---
-  Future<void> _deleteOrderType(int id) async {
+  Future<void> _deleteOrderType(int id, String name) async {
+    if (!await _confirmDelete(name)) return;
     try {
       await AdminService.deleteStudioOrderType(id);
       _loadAllCatalogs();
@@ -169,30 +184,20 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
   void _showOrderTypeEditor([dynamic ot]) {
     final bool isEdit = ot != null;
     final nameController = TextEditingController(text: isEdit ? ot['name'] ?? '' : '');
-    final descController = TextEditingController(text: isEdit ? ot['description'] ?? '' : '');
-    final priceController = TextEditingController(text: isEdit ? (ot['base_price'] ?? '').toString() : '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isEdit ? 'Ýazgy görnüşini üýtgetmek' : 'Täze ýazgy görnüşi'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Ady')),
-            TextField(controller: descController, decoration: const InputDecoration(labelText: 'Düşündiriş')),
-            TextField(controller: priceController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Esasy bahasy (TMT)')),
-          ],
+        title: Text(isEdit ? 'Görnüşi üýtgetmek' : 'Täze görnüş goşmak'),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(labelText: 'Ady'),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Ýatyr')),
           TextButton(
             onPressed: () async {
-              final payload = {
-                'name': nameController.text,
-                'description': descController.text,
-                'base_price': double.tryParse(priceController.text) ?? 0.0,
-              };
+              final payload = {'name': nameController.text};
               try {
                 if (isEdit) {
                   await AdminService.updateStudioOrderType(ot['id'], payload);
@@ -215,15 +220,14 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 2,
       child: Scaffold(
         backgroundColor: const Color(0xFFF9FAFB),
         appBar: AppBar(
-          title: const Text('Studio Kataloglary', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('Studio Sözlükleri', style: TextStyle(fontWeight: FontWeight.bold)),
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Hyzmatlar'),
-              Tab(text: 'Enjamlar'),
               Tab(text: 'Görnüşler'),
             ],
             indicatorColor: Color(0xFFDC2626),
@@ -241,7 +245,6 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
                 : TabBarView(
                     children: [
                       _buildServicesTab(),
-                      _buildEquipmentsTab(),
                       _buildOrderTypesTab(),
                     ],
                   ),
@@ -255,7 +258,12 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
       body: _services.isEmpty
           ? const Center(child: Text('Hyzmat tapylmady'))
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).padding.bottom + 82,
+              ),
               itemCount: _services.length,
               itemBuilder: (context, index) {
                 final s = _services[index];
@@ -269,12 +277,11 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
                   ),
                   child: ListTile(
                     title: Text(s['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('${s['description'] ?? ''}\nBaha: ${s['daily_price'] ?? 0} TMT'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(icon: const Icon(Icons.edit_outlined, color: Colors.blue), onPressed: () => _showServiceEditor(s)),
-                        IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => _deleteService(s['id'])),
+                        IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => _deleteService(s['id'], s['name'] ?? '')),
                       ],
                     ),
                   ),
@@ -296,7 +303,12 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
       body: _equipments.isEmpty
           ? const Center(child: Text('Enjam tapylmady'))
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).padding.bottom + 82,
+              ),
               itemCount: _equipments.length,
               itemBuilder: (context, index) {
                 final eq = _equipments[index];
@@ -315,7 +327,7 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(icon: const Icon(Icons.edit_outlined, color: Colors.blue), onPressed: () => _showEquipmentEditor(eq)),
-                        IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => _deleteEquipment(eq['id'])),
+                        IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => _deleteEquipment(eq['id'], eq['name'] ?? '')),
                       ],
                     ),
                   ),
@@ -337,7 +349,12 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
       body: _orderTypes.isEmpty
           ? const Center(child: Text('Sargyt görnüşi tapylmady'))
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).padding.bottom + 82,
+              ),
               itemCount: _orderTypes.length,
               itemBuilder: (context, index) {
                 final ot = _orderTypes[index];
@@ -351,12 +368,11 @@ class _AdminStudioCatalogsPageState extends State<AdminStudioCatalogsPage> {
                   ),
                   child: ListTile(
                     title: Text(ot['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('${ot['description'] ?? ''}\nBaha: ${ot['base_price'] ?? 0} TMT'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(icon: const Icon(Icons.edit_outlined, color: Colors.blue), onPressed: () => _showOrderTypeEditor(ot)),
-                        IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => _deleteOrderType(ot['id'])),
+                        IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => _deleteOrderType(ot['id'], ot['name'] ?? '')),
                       ],
                     ),
                   ),

@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/admin_service.dart';
 
 class AdminMobileAppsPage extends StatefulWidget {
@@ -88,83 +91,171 @@ class _AdminMobileAppsPageState extends State<AdminMobileAppsPage> {
     final bool isEdit = ver != null;
     final nameController = TextEditingController(text: isEdit ? ver['version_name'] ?? '' : '');
     final codeController = TextEditingController(text: isEdit ? (ver['version_code'] ?? '').toString() : '');
-    final fileController = TextEditingController(text: isEdit ? ver['file_url'] ?? '' : '');
     final descController = TextEditingController(text: isEdit ? ver['description'] ?? '' : '');
+
+    bool isActive = isEdit ? (ver['is_active'] == true || ver['is_active'] == 1) : false;
+    bool hasNewFile = false;
+    PlatformFile? pickedFile;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(isEdit ? 'Wersiýany üýtgetmek' : 'Täze wersiýa goşmak'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Wersiýa ady (mes: 1.0.2)'),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> pickApkFile() async {
+              try {
+                final result = await FilePicker.pickFiles(
+                  type: FileType.any,
+                );
+                if (result != null && result.files.isNotEmpty) {
+                  setModalState(() {
+                    pickedFile = result.files.first;
+                    final fileName = pickedFile!.name;
+                    if (fileName.endsWith('.apk')) {
+                      final cleaned = fileName.replaceAll('.apk', '');
+                      final verNameMatch = RegExp(r'v?(\d+\.\d+\.\d+)').firstMatch(cleaned);
+                      if (verNameMatch != null) {
+                        nameController.text = verNameMatch.group(1) ?? nameController.text;
+                      }
+                      final verCodeMatch = RegExp(r'[_](\d+)|[-](\d+)$').firstMatch(cleaned);
+                      if (verCodeMatch != null) {
+                        codeController.text = (verCodeMatch.group(1) ?? verCodeMatch.group(2)) ?? codeController.text;
+                      }
+                    }
+                  });
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Faýl saýlap bolmady: $e')),
+                );
+              }
+            }
+
+            return AlertDialog(
+              title: Text(isEdit ? 'Wersiýany redaktirlemek' : 'Täze wersiýa goşmak'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isEdit) ...[
+                      ElevatedButton.icon(
+                        onPressed: pickApkFile,
+                        icon: const Icon(Icons.upload_file),
+                        label: Text(pickedFile != null ? pickedFile!.name : 'Täze APK faýl saýlaň (Islege bagly)'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: pickedFile != null ? Colors.red[50] : Colors.grey[200],
+                          foregroundColor: pickedFile != null ? Colors.red[800] : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ] else ...[
+                      ElevatedButton.icon(
+                        onPressed: pickApkFile,
+                        icon: const Icon(Icons.upload_file),
+                        label: Text(pickedFile != null ? pickedFile!.name : 'APK faýlyny saýlaň'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: pickedFile != null ? Colors.red[50] : Colors.grey[200],
+                          foregroundColor: pickedFile != null ? Colors.red[800] : Colors.black,
+                        ),
+                      ),
+                      if (pickedFile == null) ...[
+                        const SizedBox(height: 4),
+                        const Text(
+                          'APK faýly saýlanmasa, ulgam tarapyndan awtomatiki mock APK faýly goşular.',
+                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                    ],
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: 'Wersiýa ady (Version Name, mes: 1.0.2)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: codeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Wersiýa kody (Version Code, mes: 3)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descController,
+                      maxLines: 4,
+                      decoration: const InputDecoration(labelText: 'Ýazgy / Täzelikler (Release Notes)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Işjeňleşdir (Active)', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Switch(
+                          value: isActive,
+                          onChanged: (val) {
+                            setModalState(() {
+                              isActive = val;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: codeController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Wersiýa kody (Version Code)'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: fileController,
-                  decoration: const InputDecoration(labelText: 'Fakyl/APK URL'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: descController,
-                  maxLines: 2,
-                  decoration: const InputDecoration(labelText: 'Düşündiriş / Üýtgeşmeler'),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Ýatyr')),
+                TextButton(
+                  onPressed: () async {
+                    if (nameController.text.isEmpty || codeController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Haýyş, wersiýa adyny we wersiýa koduny ýazyň.'), backgroundColor: Colors.orange),
+                      );
+                      return;
+                    }
+
+                    final payload = {
+                      'version_name': nameController.text,
+                      'version_code': int.tryParse(codeController.text) ?? 1,
+                      'description': descController.text,
+                      'is_active': isActive,
+                      'has_new_file': pickedFile != null,
+                    };
+
+                    try {
+                      if (isEdit) {
+                        await AdminService.updateAppVersion(
+                          id: ver['id'],
+                          payload: payload,
+                          filePath: pickedFile?.path,
+                          fileBytes: pickedFile?.bytes,
+                          fileName: pickedFile?.name,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Wersiýa maglumatlary üstünlikli täzelendi!'), backgroundColor: Colors.green),
+                        );
+                      } else {
+                        await AdminService.createAppVersion(
+                          payload: payload,
+                          filePath: pickedFile?.path,
+                          fileBytes: pickedFile?.bytes,
+                          fileName: pickedFile?.name,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Täze wersiýa üstünlikli ýüklendi!'), backgroundColor: Colors.green),
+                        );
+                      }
+                      Navigator.pop(context);
+                      _loadVersions();
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+                      );
+                    }
+                  },
+                  child: const Text('Sakla'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Ýatyr')),
-            TextButton(
-              onPressed: () async {
-                if (nameController.text.isEmpty || codeController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Ady we kody dolduryň'), backgroundColor: Colors.orange),
-                  );
-                  return;
-                }
-
-                final payload = {
-                  'version_name': nameController.text,
-                  'version_code': int.tryParse(codeController.text) ?? 1,
-                  'file_url': fileController.text.isNotEmpty ? fileController.text : null,
-                  'description': descController.text.isNotEmpty ? descController.text : '',
-                };
-
-                try {
-                  if (isEdit) {
-                    await AdminService.updateAppVersion(ver['id'], payload);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Wersiýa täzelendi'), backgroundColor: Colors.green),
-                    );
-                  } else {
-                    await AdminService.createAppVersion(payload);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Wersiýa döredildi'), backgroundColor: Colors.green),
-                    );
-                  }
-                  Navigator.pop(context);
-                  _loadVersions();
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-                  );
-                }
-              },
-              child: const Text('Ýatda sakla'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -187,7 +278,12 @@ class _AdminMobileAppsPageState extends State<AdminMobileAppsPage> {
               : _versions.isEmpty
                   ? const Center(child: Text('Wersiýa tapylmady'))
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: MediaQuery.of(context).padding.bottom + 82,
+                      ),
                       itemCount: _versions.length,
                       itemBuilder: (context, index) {
                         final ver = _versions[index];
@@ -196,6 +292,7 @@ class _AdminMobileAppsPageState extends State<AdminMobileAppsPage> {
                         final int code = ver['version_code'] ?? 1;
                         final String desc = ver['description'] ?? '';
                         final bool active = ver['is_active'] == true || ver['is_active'] == 1;
+                        final String? fileUrl = ver['file_url'] as String?;
 
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -237,9 +334,39 @@ class _AdminMobileAppsPageState extends State<AdminMobileAppsPage> {
                                 const SizedBox(height: 6),
                                 if (desc.isNotEmpty) Text(desc, style: TextStyle(color: Colors.grey[700])),
                                 const SizedBox(height: 12),
-                                Text(
-                                  active ? 'Işjeň (Aktiw)' : 'Işjeň däl',
-                                  style: TextStyle(color: active ? Colors.green : Colors.grey, fontWeight: FontWeight.bold),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      active ? 'Işjeň (Aktiw)' : 'Işjeň däl',
+                                      style: TextStyle(color: active ? Colors.green : Colors.grey, fontWeight: FontWeight.bold),
+                                    ),
+                                    if (fileUrl != null && fileUrl.isNotEmpty)
+                                      OutlinedButton.icon(
+                                        onPressed: () async {
+                                          final uri = Uri.parse(fileUrl);
+                                          if (await canLaunchUrl(uri)) {
+                                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                          } else {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('APK faýlyny açyp bolmady'),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        icon: const Icon(Icons.download_rounded, size: 18),
+                                        label: const Text('APK ýükle'),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: const Color(0xFFDC2626),
+                                          side: const BorderSide(color: Color(0xFFDC2626)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ],
                             ),

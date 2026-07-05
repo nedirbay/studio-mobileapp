@@ -42,8 +42,8 @@ class _AdminCurrenciesPageState extends State<AdminCurrenciesPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Walýutany pozmak'),
-        content: const Text('Hakykatdan hem bu walýutany pozmak isleýärsiňizmi?'),
+        title: const Text('Pul birligini pozmak'),
+        content: const Text('Hakykatdan hem bu pul birligini pozmak isleýärsiňizmi?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Ýok')),
           TextButton(
@@ -91,77 +91,101 @@ class _AdminCurrenciesPageState extends State<AdminCurrenciesPage> {
     final symbolController = TextEditingController(text: isEdit ? currency['symbol'] ?? '' : '');
     final rateController = TextEditingController(text: isEdit ? (currency['exchange_rate'] ?? '1').toString() : '1');
 
+    bool isActive = isEdit ? (currency['is_active'] == true || currency['is_active'] == 1) : false;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(isEdit ? 'Walýutany üýtgetmek' : 'Täze walýuta goşmak'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Ady (Name)'),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              title: Text(isEdit ? 'Pul birligini üýtgetmek' : 'Täze pul birligi goşmak'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: 'Ady (Name)'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: codeController,
+                      decoration: const InputDecoration(labelText: 'Kody (Code, mes: USD)'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: symbolController,
+                      decoration: const InputDecoration(labelText: 'Belgisi (Symbol, mes: \$)'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: rateController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Kursy (Exchange Rate)'),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Işjeň status (Active)'),
+                        Switch(
+                          value: isActive,
+                          onChanged: (val) {
+                            setModalState(() {
+                              isActive = val;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: codeController,
-                decoration: const InputDecoration(labelText: 'Kody (Code, mes: USD)'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: symbolController,
-                decoration: const InputDecoration(labelText: 'Belgisi (Symbol, mes: \$)'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: rateController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Kursy (Exchange Rate)'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Ýatyr')),
-            TextButton(
-              onPressed: () async {
-                if (nameController.text.isEmpty || codeController.text.isEmpty || symbolController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Ähli öýjükleri dolduryň'), backgroundColor: Colors.orange),
-                  );
-                  return;
-                }
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Ýatyr')),
+                TextButton(
+                  onPressed: () async {
+                    if (nameController.text.isEmpty || codeController.text.isEmpty || symbolController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Ähli öýjükleri dolduryň'), backgroundColor: Colors.orange),
+                      );
+                      return;
+                    }
 
-                final payload = {
-                  'name': nameController.text,
-                  'code': codeController.text,
-                  'symbol': symbolController.text,
-                  'exchange_rate': double.tryParse(rateController.text) ?? 1.0,
-                };
+                    final payload = {
+                      'name': nameController.text,
+                      'code': codeController.text,
+                      'symbol': symbolController.text,
+                      'exchange_rate': double.tryParse(rateController.text) ?? 1.0,
+                      'is_active': isActive,
+                    };
 
-                try {
-                  if (isEdit) {
-                    await AdminService.updateCurrency(currency['id'], payload);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Walýuta täzelendi'), backgroundColor: Colors.green),
-                    );
-                  } else {
-                    await AdminService.createCurrency(payload);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Walýuta döredildi'), backgroundColor: Colors.green),
-                    );
-                  }
-                  Navigator.pop(context);
-                  _loadCurrencies();
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-                  );
-                }
-              },
-              child: const Text('Ýatda sakla'),
-            ),
-          ],
+                    try {
+                      if (isEdit) {
+                        await AdminService.updateCurrency(currency['id'], payload);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Walýuta täzelendi'), backgroundColor: Colors.green),
+                        );
+                      } else {
+                        await AdminService.createCurrency(payload);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Walýuta döredildi'), backgroundColor: Colors.green),
+                        );
+                      }
+                      Navigator.pop(context);
+                      _loadCurrencies();
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+                      );
+                    }
+                  },
+                  child: const Text('Ýatda sakla'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -184,7 +208,12 @@ class _AdminCurrenciesPageState extends State<AdminCurrenciesPage> {
               : _currencies.isEmpty
                   ? const Center(child: Text('Walýuta tapylmady'))
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: MediaQuery.of(context).padding.bottom + 82,
+                      ),
                       itemCount: _currencies.length,
                       itemBuilder: (context, index) {
                         final cur = _currencies[index];

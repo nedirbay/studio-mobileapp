@@ -173,19 +173,43 @@ class _AdminCategoriesPageState extends State<AdminCategoriesPage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Kategoriýa gözle...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-              onChanged: (val) {
-                _searchQuery = val;
-                _filterCategories();
-              },
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Kategoriýa gözle...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    onChanged: (val) {
+                      _searchQuery = val;
+                      _filterCategories();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  height: 52,
+                  width: 52,
+                  child: ElevatedButton(
+                    onPressed: () => _showCategoryEditor(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Icon(Icons.add, size: 26),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -196,7 +220,12 @@ class _AdminCategoriesPageState extends State<AdminCategoriesPage> {
                     : _filteredCategories.isEmpty
                         ? const Center(child: Text('Kategoriýa tapylmady'))
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.fromLTRB(
+                              16,
+                              0,
+                              16,
+                              MediaQuery.of(context).padding.bottom + 16,
+                            ),
                             itemCount: _filteredCategories.length,
                             itemBuilder: (context, index) {
                               final category = _filteredCategories[index];
@@ -240,12 +269,6 @@ class _AdminCategoriesPageState extends State<AdminCategoriesPage> {
                           ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        onPressed: () => _showCategoryEditor(),
-        child: const Icon(Icons.add),
       ),
     );
   }

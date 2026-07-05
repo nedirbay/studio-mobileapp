@@ -262,7 +262,12 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     : _users.isEmpty
                         ? const Center(child: Text('Ulanyjy tapylmady'))
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 8,
+                              bottom: MediaQuery.of(context).padding.bottom + 82,
+                            ),
                             itemCount: _users.length,
                             itemBuilder: (context, index) {
                               final u = _users[index];

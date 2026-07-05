@@ -20,6 +20,9 @@ import 'admin_currencies_page.dart';
 import 'admin_mobile_apps_page.dart';
 import 'admin_logs_page.dart';
 
+import 'dart:async';
+import '../services/admin_ws_service.dart';
+
 class AdminMainLayoutPage extends StatefulWidget {
   const AdminMainLayoutPage({super.key});
 
@@ -29,6 +32,77 @@ class AdminMainLayoutPage extends StatefulWidget {
 
 class _AdminMainLayoutPageState extends State<AdminMainLayoutPage> {
   int _currentIndex = 0;
+  StreamSubscription? _wsSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    AdminWsService.instance.connect();
+    _wsSubscription = AdminWsService.instance.stream.listen((event) {
+      if (event.type == AdminWsEventType.messageCreated) {
+        final message = event.data['message'] ?? {};
+        final sender = message['username'] ?? 'Myhman';
+        final subject = message['subject'] ?? '';
+        final content = message['message'] ?? '';
+        final String previewText = subject.isNotEmpty
+            ? subject
+            : (content.length > 50 ? '${content.substring(0, 50)}...' : content);
+
+        if (mounted) {
+          // Clear any current snackbars first
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.mail_outline, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Täze sorag geldi ($sender):',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        Text(
+                          previewText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.orange[800],
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 6),
+              action: SnackBarAction(
+                label: 'Oka',
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AdminMessagesPage()),
+                  );
+                },
+              ),
+            ),
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _wsSubscription?.cancel();
+    AdminWsService.instance.disconnect();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

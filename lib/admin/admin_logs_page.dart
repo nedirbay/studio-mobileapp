@@ -237,7 +237,7 @@ class _AdminLogsPageState extends State<AdminLogsPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sene boýunça pozmak'),
+        title: const Text('Sene aralyk boýunça pozmak'),
         content: Text('$startStr we $endStr seneleri aralygyndaky ähli loglary pozmak isleýärsiňizmi?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Ýok')),
@@ -459,7 +459,7 @@ class _AdminLogsPageState extends State<AdminLogsPage> {
                   children: [
                     Icon(Icons.calendar_today_rounded, color: Colors.orange),
                     SizedBox(width: 10),
-                    Text('Sene boýunça poz'),
+                    Text('Sene aralyk boýunça poz'),
                   ],
                 ),
               ),
@@ -632,7 +632,12 @@ class _AdminLogsPageState extends State<AdminLogsPage> {
                     : _filteredLogs.isEmpty
                         ? const Center(child: Text('Gözlege laýyk log ýazgysy tapylmady'))
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            padding: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 8,
+                              bottom: MediaQuery.of(context).padding.bottom + 16,
+                            ),
                             itemCount: _filteredLogs.length,
                             itemBuilder: (context, index) {
                               final log = _filteredLogs[index];

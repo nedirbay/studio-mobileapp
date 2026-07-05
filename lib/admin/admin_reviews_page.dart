@@ -98,7 +98,12 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
               : _reviews.isEmpty
                   ? const Center(child: Text('Teswir tapylmady'))
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: MediaQuery.of(context).padding.bottom + 16,
+                      ),
                       itemCount: _reviews.length,
                       itemBuilder: (context, index) {
                         final r = _reviews[index];

@@ -460,7 +460,12 @@ class _AdminStudioOrdersPageState extends State<AdminStudioOrdersPage> {
                     : _filteredOrders.isEmpty
                         ? const Center(child: Text('Studiýa sargydy tapylmady'))
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.only(
+                              left: 16,
+                              right: 16,
+                              top: 8,
+                              bottom: MediaQuery.of(context).padding.bottom + 16,
+                            ),
                             itemCount: _filteredOrders.length,
                             itemBuilder: (context, index) {
                               final order = _filteredOrders[index];

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../services/admin_service.dart';
 
 class AdminBrandsPage extends StatefulWidget {
@@ -84,86 +85,183 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
   void _showBrandEditor([dynamic brand]) {
     final bool isEdit = brand != null;
     final nameController = TextEditingController(text: isEdit ? brand['name'] ?? '' : '');
-    final logoController = TextEditingController(text: isEdit ? brand['logo'] ?? '' : '');
-    final siteController = TextEditingController(text: isEdit ? brand['site'] ?? '' : '');
     final descController = TextEditingController(text: isEdit ? brand['description'] ?? '' : '');
+
+    // Logo state
+    String? uploadedLogoUrl = isEdit ? (brand['logo_url'] ?? brand['logo'] ?? '') : null;
+    PlatformFile? pickedLogoFile;
+    bool isUploading = false;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(isEdit ? 'Brendi üýtgetmek' : 'Täze brend'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Ady'),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> pickLogo() async {
+              try {
+                final result = await FilePicker.pickFiles(
+                  type: FileType.image,
+                );
+                if (result != null && result.files.isNotEmpty) {
+                  setModalState(() {
+                    pickedLogoFile = result.files.first;
+                  });
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Surat saýlap bolmady: $e')),
+                );
+              }
+            }
+
+            return AlertDialog(
+              title: Text(isEdit ? 'Brendi üýtgetmek' : 'Täze brend'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: 'Ady'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Logo picker
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Preview
+                        if (pickedLogoFile != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: pickedLogoFile!.bytes != null
+                                  ? Image.memory(
+                                      pickedLogoFile!.bytes!,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                          )
+                        else if (uploadedLogoUrl != null && uploadedLogoUrl!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                uploadedLogoUrl!,
+                                height: 100,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48),
+                              ),
+                            ),
+                          ),
+                        ElevatedButton.icon(
+                          onPressed: isUploading ? null : pickLogo,
+                          icon: const Icon(Icons.image_outlined),
+                          label: Text(
+                            pickedLogoFile != null
+                                ? pickedLogoFile!.name
+                                : (uploadedLogoUrl != null && uploadedLogoUrl!.isNotEmpty
+                                    ? 'Logoý üýtget'
+                                    : 'Logo surat saýlaň'),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: pickedLogoFile != null
+                                ? Colors.green[50]
+                                : Colors.grey[200],
+                            foregroundColor: pickedLogoFile != null
+                                ? Colors.green[800]
+                                : Colors.black87,
+                            elevation: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descController,
+                      maxLines: 2,
+                      decoration: const InputDecoration(labelText: 'Düşündiriş'),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: logoController,
-                  decoration: const InputDecoration(labelText: 'Logo URL'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Ýatyr'),
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: siteController,
-                  decoration: const InputDecoration(labelText: 'Web saýty'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: descController,
-                  maxLines: 2,
-                  decoration: const InputDecoration(labelText: 'Düşündiriş'),
+                TextButton(
+                  onPressed: isUploading
+                      ? null
+                      : () async {
+                          if (nameController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Ady hökman doldurylmaly'), backgroundColor: Colors.orange),
+                            );
+                            return;
+                          }
+
+                          String? finalLogoUrl = uploadedLogoUrl;
+
+                          // Upload new logo if picked
+                          if (pickedLogoFile != null) {
+                            setModalState(() => isUploading = true);
+                            try {
+                              finalLogoUrl = await AdminService.uploadImage(
+                                filePath: pickedLogoFile!.path,
+                                fileBytes: pickedLogoFile!.bytes,
+                                fileName: pickedLogoFile!.name,
+                              );
+                            } catch (e) {
+                              setModalState(() => isUploading = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Surat ýüklenip bolmady: $e'), backgroundColor: Colors.red),
+                              );
+                              return;
+                            }
+                            setModalState(() => isUploading = false);
+                          }
+
+                          final payload = {
+                            'name': nameController.text,
+                            'logo_url': finalLogoUrl ?? '',
+                            'description': descController.text.isNotEmpty ? descController.text : null,
+                          };
+
+                          try {
+                            if (isEdit) {
+                              await AdminService.updateBrand(brand['id'], payload);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Brend täzelendi'), backgroundColor: Colors.green),
+                              );
+                            } else {
+                              await AdminService.createBrand(payload);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Täze brend döredildi'), backgroundColor: Colors.green),
+                              );
+                            }
+                            Navigator.pop(context);
+                            _loadBrands();
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+                            );
+                          }
+                        },
+                  child: isUploading
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Ýatda sakla'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Ýatyr'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (nameController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Ady hökman doldurylmaly'), backgroundColor: Colors.orange),
-                  );
-                  return;
-                }
-
-                final payload = {
-                  'name': nameController.text,
-                  'logo': logoController.text.isNotEmpty ? logoController.text : null,
-                  'site': siteController.text.isNotEmpty ? siteController.text : null,
-                  'description': descController.text.isNotEmpty ? descController.text : null,
-                };
-
-                try {
-                  if (isEdit) {
-                    await AdminService.updateBrand(brand['id'], payload);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Brend täzelendi'), backgroundColor: Colors.green),
-                    );
-                  } else {
-                    await AdminService.createBrand(payload);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Täze brend döredildi'), backgroundColor: Colors.green),
-                    );
-                  }
-                  Navigator.pop(context);
-                  _loadBrands();
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-                  );
-                }
-              },
-              child: const Text('Ýatda sakla'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -183,19 +281,43 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Brend gözle...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-              onChanged: (val) {
-                _searchQuery = val;
-                _filterBrands();
-              },
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Brend gözle...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    onChanged: (val) {
+                      _searchQuery = val;
+                      _filterBrands();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  height: 52,
+                  width: 52,
+                  child: ElevatedButton(
+                    onPressed: () => _showBrandEditor(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Icon(Icons.add, size: 26),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -206,7 +328,12 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                     : _filteredBrands.isEmpty
                         ? const Center(child: Text('Brend tapylmady'))
                         : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: EdgeInsets.fromLTRB(
+                              16,
+                              0,
+                              16,
+                              MediaQuery.of(context).padding.bottom + 16,
+                            ),
                             itemCount: _filteredBrands.length,
                             itemBuilder: (context, index) {
                               final brand = _filteredBrands[index];
@@ -250,12 +377,6 @@ class _AdminBrandsPageState extends State<AdminBrandsPage> {
                           ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        onPressed: () => _showBrandEditor(),
-        child: const Icon(Icons.add),
       ),
     );
   }

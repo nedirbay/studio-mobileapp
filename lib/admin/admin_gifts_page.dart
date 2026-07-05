@@ -73,14 +73,22 @@ class _AdminGiftsPageState extends State<AdminGiftsPage> {
   void _showCampaignEditor([dynamic campaign]) {
     final bool isEdit = campaign != null;
     final titleController = TextEditingController(text: isEdit ? campaign['title'] ?? '' : '');
+    final subtitleController = TextEditingController(text: isEdit ? campaign['subtitle'] ?? '' : '');
     final descController = TextEditingController(text: isEdit ? campaign['description'] ?? '' : '');
+    final prizeTitleController = TextEditingController(text: isEdit ? campaign['prize_title'] ?? '' : '');
+    final prizeValueController = TextEditingController(text: isEdit ? (campaign['prize_value'] ?? '0').toString() : '0');
+    final discountPercentController = TextEditingController(text: isEdit ? (campaign['discount_percent'] ?? '0').toString() : '0');
+    final promoCodeController = TextEditingController(text: isEdit ? campaign['promo_code'] ?? '' : '');
     final rulesController = TextEditingController(text: isEdit ? campaign['rules'] ?? '' : '');
-    final imageController = TextEditingController(text: isEdit ? campaign['image'] ?? '' : '');
-    final startController = TextEditingController(text: isEdit ? (campaign['start_date'] ?? '').toString().split('T')[0] : '');
-    final endController = TextEditingController(text: isEdit ? (campaign['end_date'] ?? '').toString().split('T')[0] : '');
+    final imageUrlController = TextEditingController(text: isEdit ? campaign['image_url'] ?? '' : '');
+    final bannerUrlController = TextEditingController(text: isEdit ? campaign['banner_url'] ?? '' : '');
+    final bgGradientController = TextEditingController(text: isEdit ? campaign['bg_gradient'] ?? 'from-red-600 to-orange-500' : 'from-red-600 to-orange-500');
+    final startsAtController = TextEditingController(text: isEdit ? (campaign['starts_at'] ?? '') : '');
+    final endsAtController = TextEditingController(text: isEdit ? (campaign['ends_at'] ?? '') : '');
 
     String type = isEdit ? campaign['type'] ?? 'giveaway' : 'giveaway';
-    bool isActive = isEdit ? (campaign['is_active'] == true || campaign['is_active'] == 1) : true;
+    String status = isEdit ? campaign['status'] ?? 'active' : 'active';
+    bool isFeatured = isEdit ? (campaign['is_featured'] == true || campaign['is_featured'] == 1) : false;
 
     showModalBottomSheet(
       context: context,
@@ -90,6 +98,29 @@ class _AdminGiftsPageState extends State<AdminGiftsPage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            Future<void> selectDateTime(TextEditingController controller) async {
+              final DateTime? date = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2030),
+              );
+              if (date == null) return;
+
+              if (!context.mounted) return;
+
+              final TimeOfDay? time = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.now(),
+              );
+              if (time == null) return;
+
+              final dateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+              setModalState(() {
+                controller.text = dateTime.toUtc().toIso8601String().replaceAll('.000', '');
+              });
+            }
+
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -103,57 +134,17 @@ class _AdminGiftsPageState extends State<AdminGiftsPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      isEdit ? 'Aksiýany üýtgetmek' : 'Täze aksiýa / sowgat',
+                      isEdit ? 'Aksiýany üýtgetmek' : 'Täze aksiýa / sowgat goşmak',
                       style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
-                    TextField(
-                      controller: titleController,
-                      decoration: const InputDecoration(labelText: 'Aksiýa ady', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: descController,
-                      maxLines: 2,
-                      decoration: const InputDecoration(labelText: 'Düşündiriş', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: rulesController,
-                      maxLines: 2,
-                      decoration: const InputDecoration(labelText: 'Düzgünler', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: imageController,
-                      decoration: const InputDecoration(labelText: 'Surat URL', border: OutlineInputBorder()),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: startController,
-                            decoration: const InputDecoration(labelText: 'Başlanýan senesi (YYYY-MM-DD)', border: OutlineInputBorder()),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: TextField(
-                            controller: endController,
-                            decoration: const InputDecoration(labelText: 'Gutarýan senesi (YYYY-MM-DD)', border: OutlineInputBorder()),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: type,
-                      decoration: const InputDecoration(labelText: 'Görnüşi (Type)', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(labelText: 'Aksiýanyň görnüşi', border: OutlineInputBorder()),
                       items: const [
-                        DropdownMenuItem(value: 'giveaway', child: Text('Giveaway / Utuşly bäsleşik')),
-                        DropdownMenuItem(value: 'promotion', child: Text('Promotion / Arzanlaşyk')),
-                        DropdownMenuItem(value: 'gift', child: Text('Gift / Sowgat')),
+                        DropdownMenuItem(value: 'giveaway', child: Text('Bäsleşikler / Giveaway')),
+                        DropdownMenuItem(value: 'promotion', child: Text('Aksiýalar')),
+                        DropdownMenuItem(value: 'gift', child: Text('Sowgatlar')),
                       ],
                       onChanged: (val) {
                         if (val != null) {
@@ -164,16 +155,127 @@ class _AdminGiftsPageState extends State<AdminGiftsPage> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: status,
+                      decoration: const InputDecoration(labelText: 'Aksiýa statusy', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'draft', child: Text('Garaşylýar (Draft)')),
+                        DropdownMenuItem(value: 'active', child: Text('Işjeň (Active)')),
+                        DropdownMenuItem(value: 'finished', child: Text('Tamamlandy (Finished)')),
+                        DropdownMenuItem(value: 'cancelled', child: Text('Ýatyryldy (Cancelled)')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() {
+                            status = val;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(labelText: 'Aksiýanyň ady', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: subtitleController,
+                      decoration: const InputDecoration(labelText: 'Gysga düşündiriş (Subtitle)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: startsAtController,
+                      readOnly: true,
+                      onTap: () => selectDateTime(startsAtController),
+                      decoration: const InputDecoration(
+                        labelText: 'Başlanýan wagty',
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: endsAtController,
+                      readOnly: true,
+                      onTap: () => selectDateTime(endsAtController),
+                      decoration: InputDecoration(
+                        labelText: 'Tamamlanýan wagty (goýulmasa möhletsiz)',
+                        border: const OutlineInputBorder(),
+                        suffixIcon: endsAtController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  setModalState(() {
+                                    endsAtController.clear();
+                                  });
+                                },
+                              )
+                            : const Icon(Icons.calendar_today),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: prizeTitleController,
+                      decoration: const InputDecoration(labelText: 'Sowgadyň ady (Prize)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: prizeValueController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Sowgat bahasy (TMT)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: discountPercentController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Arzanladyş göterimi (%)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: promoCodeController,
+                      decoration: const InputDecoration(labelText: 'Promo Kod', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: rulesController,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        labelText: 'Aksiýanyň şertleri (Her setirde ýekeje şert)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: descController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(labelText: 'Giňişleýin maglumat (Description)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: imageUrlController,
+                      decoration: const InputDecoration(labelText: 'Surat URL (Image)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: bannerUrlController,
+                      decoration: const InputDecoration(labelText: 'Banner Surat URL', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: bgGradientController,
+                      decoration: const InputDecoration(labelText: 'Arka tarapyň reňkleri (bg_gradient)', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Işjeň (Active)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        const Text('Baş sahypada tapawutly görkez', style: TextStyle(fontSize: 16)),
                         Switch(
-                          value: isActive,
+                          value: isFeatured,
                           activeColor: const Color(0xFFDC2626),
                           onChanged: (val) {
                             setModalState(() {
-                              isActive = val;
+                              isFeatured = val;
                             });
                           },
                         ),
@@ -187,32 +289,46 @@ class _AdminGiftsPageState extends State<AdminGiftsPage> {
                         onPressed: () async {
                           if (titleController.text.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Sözbaşy hökman doldurylmaly'), backgroundColor: Colors.orange),
+                              const SnackBar(content: Text('Aksiýanyň ady hökmanydyr'), backgroundColor: Colors.orange),
+                            );
+                            return;
+                          }
+                          if (startsAtController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Başlanýan wagty hökmanydyr'), backgroundColor: Colors.orange),
                             );
                             return;
                           }
 
                           final payload = {
-                            'title': titleController.text,
-                            'description': descController.text.isNotEmpty ? descController.text : null,
-                            'rules': rulesController.text.isNotEmpty ? rulesController.text : null,
-                            'image': imageController.text.isNotEmpty ? imageController.text : null,
-                            'start_date': startController.text.isNotEmpty ? '${startController.text}T00:00:00Z' : null,
-                            'end_date': endController.text.isNotEmpty ? '${endController.text}T00:00:00Z' : null,
                             'type': type,
-                            'is_active': isActive,
+                            'status': status,
+                            'title': titleController.text,
+                            'subtitle': subtitleController.text,
+                            'starts_at': startsAtController.text,
+                            'ends_at': endsAtController.text.isNotEmpty ? endsAtController.text : null,
+                            'prize_title': prizeTitleController.text,
+                            'prize_value': double.tryParse(prizeValueController.text) ?? 0.0,
+                            'discount_percent': int.tryParse(discountPercentController.text) ?? 0,
+                            'promo_code': promoCodeController.text,
+                            'rules': rulesController.text,
+                            'description': descController.text,
+                            'image_url': imageUrlController.text,
+                            'banner_url': bannerUrlController.text,
+                            'bg_gradient': bgGradientController.text,
+                            'is_featured': isFeatured,
                           };
 
                           try {
                             if (isEdit) {
                               await AdminService.updateCampaign(campaign['id'], payload);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Aksiýa täzelendi'), backgroundColor: Colors.green),
+                                const SnackBar(content: Text('Aksiýa üstünlikli täzelendi'), backgroundColor: Colors.green),
                               );
                             } else {
                               await AdminService.createCampaign(payload);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Täze aksiýa döredildi'), backgroundColor: Colors.green),
+                                const SnackBar(content: Text('Täze aksiýa üstünlikli döredildi'), backgroundColor: Colors.green),
                               );
                             }
                             Navigator.pop(context);
@@ -224,7 +340,7 @@ class _AdminGiftsPageState extends State<AdminGiftsPage> {
                           }
                         },
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
-                        child: const Text('Ýatda sakla'),
+                        child: const Text('Sakla'),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -267,7 +383,12 @@ class _AdminGiftsPageState extends State<AdminGiftsPage> {
               : _campaigns.isEmpty
                   ? const Center(child: Text('Aksiýa tapylmady'))
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: MediaQuery.of(context).padding.bottom + 82,
+                      ),
                       itemCount: _campaigns.length,
                       itemBuilder: (context, index) {
                         final campaign = _campaigns[index];
@@ -341,7 +462,7 @@ class _AdminGiftsPageState extends State<AdminGiftsPage> {
                                       style: TextStyle(color: active ? Colors.green : Colors.red, fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      'Sene: ${campaign['start_date'] != null ? campaign['start_date'].toString().split('T')[0] : ''} - ${campaign['end_date'] != null ? campaign['end_date'].toString().split('T')[0] : ''}',
+                                      'Sene: ${campaign['starts_at'] != null ? campaign['starts_at'].toString().split('T')[0] : ''} - ${campaign['ends_at'] != null ? campaign['ends_at'].toString().split('T')[0] : 'Möhletsiz'}',
                                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                                     ),
                                   ],
@@ -437,7 +558,12 @@ class _AdminCampaignParticipantsPageState extends State<AdminCampaignParticipant
               : _participants.isEmpty
                   ? const Center(child: Text('Gatnaşyjy ýok'))
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: MediaQuery.of(context).padding.bottom + 16,
+                      ),
                       itemCount: _participants.length,
                       itemBuilder: (context, index) {
                         final p = _participants[index];
