@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
 import 'login_page.dart';
-import '../admin/admin_dashboard_page.dart';
 import 'my_orders_page.dart';
 import 'news_list_page.dart';
 import 'about_page.dart';
@@ -77,9 +76,6 @@ class _ProfilePageState extends State<ProfilePage> {
           builder: (context, _) {
             final auth = AuthService();
             final user = auth.user;
-            final bool isAdmin = auth.isAuthenticated &&
-                user != null &&
-                (user['role_name'] == 'Admin' || user['is_superuser'] == true);
 
             return Scaffold(
               backgroundColor: isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
@@ -117,7 +113,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     else
                       _buildGuestView(isDark, settings),
                     const SizedBox(height: 24),
-                    _buildSettingsList(auth, settings, isDark, isAdmin),
+                    _buildSettingsList(auth, settings, isDark),
                   ],
                 ),
               ),
@@ -256,7 +252,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildSettingsList(AuthService auth, SettingsService settings, bool isDark, bool isAdmin) {
+  Widget _buildSettingsList(AuthService auth, SettingsService settings, bool isDark) {
     final tileColor = isDark ? const Color(0xFF1F2937) : Colors.white;
     final borderColor = isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6);
 
@@ -298,24 +294,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 12),
         ],
 
-        // --- ADMIN DASHBOARD TILE (Only Admin) ---
-        if (isAdmin) ...[
-          _buildSettingsItem(
-            icon: Icons.admin_panel_settings_outlined,
-            iconColor: const Color(0xFFDC2626),
-            title: settings.translate('admin_panel'),
-            tileColor: tileColor,
-            borderColor: borderColor,
-            isDark: isDark,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-        ],
+
 
         // --- SECURITY (CHANGE PASSWORD) TILE (Only authenticated) ---
         if (auth.isAuthenticated) ...[

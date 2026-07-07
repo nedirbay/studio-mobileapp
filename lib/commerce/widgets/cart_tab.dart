@@ -214,17 +214,18 @@ class _CartTabState extends State<CartTab> {
                   ],
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       child: Image.network(
                         imageUrl,
-                        width: 70,
-                        height: 70,
+                        width: 80,
+                        height: 80,
                         fit: BoxFit.cover,
                         errorBuilder: (c, e, s) => Container(
-                          width: 70,
-                          height: 70,
+                          width: 80,
+                          height: 80,
                           color: isDark ? const Color(0xFF374151) : const Color(0xFFF3F4F6),
                           child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey),
                         ),
@@ -235,47 +236,102 @@ class _CartTabState extends State<CartTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            prod['name'] ?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : const Color(0xFF111827)),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      prod['name'] ?? '',
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: isDark ? Colors.white : const Color(0xFF111827),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      prod['marka'] ?? 'Doganlar',
+                                      style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFF9CA3AF), size: 22),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () => cart.removeFromCart(prod['id']),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            prod['marka'] ?? 'Doganlar',
-                            style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
-                          ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                               Text(
-                                 '${prod['price']} ${Config.activeCurrencySymbol}',
-                                 style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFDC2626), fontSize: 15),
-                               ),
+                              Text(
+                                '${prod['price']} ${Config.activeCurrencySymbol}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFDC2626),
+                                  fontSize: 16,
+                                ),
+                              ),
                               Container(
+                                height: 32,
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB)),
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: isDark ? const Color(0xFF111827) : const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.remove, size: 14),
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                      onPressed: () => cart.updateQuantity(prod['id'], item['quantity'] - 1),
+                                    InkWell(
+                                      onTap: () => cart.updateQuantity(prod['id'], item['quantity'] - 1),
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(16),
+                                        bottomLeft: Radius.circular(16),
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                                        alignment: Alignment.center,
+                                        child: Icon(
+                                          Icons.remove_rounded,
+                                          size: 16,
+                                          color: isDark ? Colors.white70 : Colors.black87,
+                                        ),
+                                      ),
                                     ),
-                                    Text(
-                                      '${item['quantity']}',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isDark ? Colors.white : Colors.black),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                      child: Text(
+                                        '${item['quantity']}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: isDark ? Colors.white : Colors.black,
+                                        ),
+                                      ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.add, size: 14, color: Color(0xFFDC2626)),
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                      onPressed: () => cart.updateQuantity(prod['id'], item['quantity'] + 1),
+                                    InkWell(
+                                      onTap: () => cart.updateQuantity(prod['id'], item['quantity'] + 1),
+                                      borderRadius: const BorderRadius.only(
+                                        topRight: Radius.circular(16),
+                                        bottomRight: Radius.circular(16),
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                                        alignment: Alignment.center,
+                                        child: const Icon(
+                                          Icons.add_rounded,
+                                          size: 16,
+                                          color: Color(0xFFDC2626),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -284,11 +340,6 @@ class _CartTabState extends State<CartTab> {
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFF9CA3AF)),
-                      onPressed: () => cart.removeFromCart(prod['id']),
                     ),
                   ],
                 ),
