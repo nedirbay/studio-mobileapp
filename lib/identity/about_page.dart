@@ -247,7 +247,7 @@ class AboutPage extends StatelessWidget {
                       _buildInfoItem(
                         icon: Icons.email_outlined,
                         label: settings.translate('about_email_label'),
-                        value: 'doganlarfoto@gmail.com',
+                        value: 'doganlarfotomerkez@gmail.com',
                         isDark: isDark,
                       ),
                       const Divider(height: 24, thickness: 1),

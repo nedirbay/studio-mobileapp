@@ -109,7 +109,7 @@ class AppFooter extends StatelessWidget {
             ),
           ),
           
-          _buildContactItem(Icons.email_rounded, 'doganlarfoto@gmail.com'),
+          _buildContactItem(Icons.email_rounded, 'doganlarfotomerkez@gmail.com'),
           _buildContactItem(Icons.access_time_filled_rounded, 'Iş wagty: 8:00 – 19:00'),
           
           const SizedBox(height: 32),

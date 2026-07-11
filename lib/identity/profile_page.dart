@@ -5,6 +5,8 @@ import 'login_page.dart';
 import 'my_orders_page.dart';
 import 'news_list_page.dart';
 import 'about_page.dart';
+import 'about_app_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -22,6 +24,30 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _obscureOld = true;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
+
+  Future<void> _makeCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber.replaceAll(RegExp(r'[\s-]'), ''),
+    );
+    try {
+      await launchUrl(launchUri);
+    } catch (e) {
+      debugPrint('Could not launch $launchUri: $e');
+    }
+  }
+
+  Future<void> _sendEmail(String emailAddress) async {
+    final Uri launchUri = Uri(
+      scheme: 'mailto',
+      path: emailAddress,
+    );
+    try {
+      await launchUrl(launchUri);
+    } catch (e) {
+      debugPrint('Could not launch $launchUri: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -489,6 +515,72 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         const SizedBox(height: 12),
+        // --- CONTACT US TILE ---
+        Container(
+          decoration: BoxDecoration(
+            color: tileColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor, width: 1.5),
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.teal.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.phone_in_talk_outlined, color: Colors.teal, size: 22),
+              ),
+              title: Text(
+                settings.translate('about_contact_label'),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              subtitle: Text(
+                settings.translate('about_address_val'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              children: [
+                _buildContactDetailItem(
+                  icon: Icons.phone_outlined,
+                  color: Colors.green,
+                  title: '+993 64 30-12-57',
+                  onTap: () => _makeCall('+993 64 30-12-57'),
+                  isDark: isDark,
+                ),
+                const Divider(height: 8),
+                _buildContactDetailItem(
+                  icon: Icons.phone_outlined,
+                  color: Colors.green,
+                  title: '+993 61 24-69-37',
+                  onTap: () => _makeCall('+993 61 24-69-37'),
+                  isDark: isDark,
+                ),
+                const Divider(height: 8),
+                _buildContactDetailItem(
+                  icon: Icons.email_outlined,
+                  color: Colors.blue,
+                  title: 'doganlarfotomerkez@gmail.com',
+                  onTap: () => _sendEmail('doganlarfotomerkez@gmail.com'),
+                  isDark: isDark,
+                ),
+                const Divider(height: 8),
+                _buildContactDetailItem(
+                  icon: Icons.location_on_outlined,
+                  color: Colors.red,
+                  title: settings.translate('about_address_val'),
+                  onTap: null,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         _buildSettingsItem(
           icon: Icons.info_outline_rounded,
           iconColor: const Color(0xFFDC2626),
@@ -500,6 +592,21 @@ class _ProfilePageState extends State<ProfilePage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AboutPage()),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        _buildSettingsItem(
+          icon: Icons.phone_android_rounded,
+          iconColor: Colors.blueGrey,
+          title: settings.translate('about_app'),
+          tileColor: tileColor,
+          borderColor: borderColor,
+          isDark: isDark,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AboutAppPage()),
             );
           },
         ),
@@ -538,6 +645,44 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.grey),
         onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildContactDetailItem({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required VoidCallback? onTap,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+            if (onTap != null)
+              Icon(
+                Icons.open_in_new_rounded,
+                size: 14,
+                color: isDark ? Colors.grey[600] : Colors.grey[400],
+              ),
+          ],
+        ),
       ),
     );
   }

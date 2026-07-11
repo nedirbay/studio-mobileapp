@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import 'privacy_policy_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -19,6 +20,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _otpSent = false;
+  bool _agreeToPrivacy = false;
   int _resendTimer = 0;
   Timer? _timer;
 
@@ -46,6 +48,16 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (!_agreeToPrivacy) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Agza bolmak üçin Gizlinlik syýasatyny kabul etmeli!'),
+          backgroundColor: Color(0xFFDC2626),
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
     try {
@@ -221,7 +233,17 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               contentPadding: const EdgeInsets.all(16),
             ),
-            validator: (value) => value!.isEmpty ? 'Adyňyzy giriziň' : null,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Adyňyzy giriziň';
+              }
+              final username = value.trim();
+              final RegExp alphanumeric = RegExp(r'^[a-zA-Z0-9]+$');
+              if (!alphanumeric.hasMatch(username)) {
+                return 'Ulanyjy adynda diňe harplar we sanlar bolmaly';
+              }
+              return null;
+            },
           ),
           
           const SizedBox(height: 24),
@@ -254,8 +276,14 @@ class _RegisterPageState extends State<RegisterPage> {
               contentPadding: const EdgeInsets.all(16),
             ),
             validator: (value) {
-              if (value!.isEmpty) return 'Email salgyňyzy ýazyň';
-              if (!value.contains('@')) return 'Dogry email salgysyny ýazyň';
+              if (value == null || value.trim().isEmpty) {
+                return 'Email salgyňyzy ýazyň';
+              }
+              final email = value.trim();
+              final RegExp emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+              if (!emailRegExp.hasMatch(email)) {
+                return 'Dogry email salgysyny ýazyň';
+              }
               return null;
             },
           ),
@@ -298,13 +326,70 @@ class _RegisterPageState extends State<RegisterPage> {
               contentPadding: const EdgeInsets.all(16),
             ),
             validator: (value) {
-              if (value!.isEmpty) return 'Paroluňyzy ýazyň';
-              if (value.length < 6) return 'Parol azyndan 6 simwol bolmaly';
+              if (value == null || value.isEmpty) {
+                return 'Paroluňyzy ýazyň';
+              }
+              if (value.length < 8) {
+                return 'Parol azyndan 8 simwol bolmaly';
+              }
+              if (!value.contains(RegExp(r'[a-zA-Z]')) || !value.contains(RegExp(r'[0-9]'))) {
+                return 'Parolda azyndan bir harp we bir san bolmaly';
+              }
               return null;
             },
           ),
           
-          const SizedBox(height: 36),
+          const SizedBox(height: 16),
+          
+          // Privacy Policy Checkbox
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Checkbox(
+                value: _agreeToPrivacy,
+                activeColor: Colors.black,
+                onChanged: (value) {
+                  setState(() {
+                    _agreeToPrivacy = value ?? false;
+                  });
+                },
+              ),
+              Expanded(
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    const Text(
+                      'Men ',
+                      style: TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PrivacyPolicyPage()),
+                        );
+                      },
+                      child: const Text(
+                        'Gizlinlik syýasatyny',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      ' okadym we kabul edýärin.',
+                      style: TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 24),
           
           // Submit Button
           SizedBox(

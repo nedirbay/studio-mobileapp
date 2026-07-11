@@ -16,18 +16,6 @@ class TopBar extends StatelessWidget {
     }
   }
 
-  Future<void> _sendEmail(String emailAddress) async {
-    final Uri launchUri = Uri(
-      scheme: 'mailto',
-      path: emailAddress,
-    );
-    try {
-      await launchUrl(launchUri);
-    } catch (e) {
-      debugPrint('Could not launch $launchUri: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -42,21 +30,6 @@ class TopBar extends StatelessWidget {
           _buildPhoneItem('+993 64 30-12-57', textColor),
           const SizedBox(width: 12),
           _buildPhoneItem('+993 61 24-69-37', textColor),
-          const Spacer(),
-          InkWell(
-            onTap: () => _sendEmail('doganlarfoto@gmail.com'),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.email_outlined, size: 12, color: textColor),
-                const SizedBox(width: 4),
-                Text(
-                  'doganlarfoto@gmail.com',
-                  style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
